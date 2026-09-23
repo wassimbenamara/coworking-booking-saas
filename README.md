@@ -52,10 +52,37 @@ git clone <repository-url>
 cd coworking-booking-saas
 ```
 
+## Environment Variables
+
+The frontend requires an environment variable to communicate with the backend API.
+
+Create a `.env` file inside the `frontend` directory:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+You can use the provided example file:
+
+```text
+frontend/.env.example
+```
+
+The `.env` file is ignored by Git and should not be committed.
+
 ### Frontend
+
+Create the environment file:
 
 ```bash
 cd frontend
+```
+Copy `.env.example` to `.env` and update the values if necessary.
+
+
+Then install the dependencies and start the development server:
+
+```bash
 npm install
 npm run dev
 ```
