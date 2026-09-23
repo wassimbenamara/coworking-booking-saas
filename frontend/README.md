@@ -71,6 +71,13 @@ The project structure will evolve as new features are added.
 - User reservations
 - Admin dashboard
 
+## Environment Variables
+
+Create a `.env` file in the frontend directory:
+
+```env
+VITE_API_URL=http://localhost:3000
+
 ## Status
 
 🚧 Work in progress.

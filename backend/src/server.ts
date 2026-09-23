@@ -10,7 +10,14 @@ const PORT = 3000;
 
 app.get("/", (_req, res) => {
   res.json({
-    message: "Coworking Booking API"
+    message: "Coworking Booking API",
+  });
+});
+
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "coworking-booking-api",
   });
 });
 
