@@ -191,6 +191,7 @@ On pushes and pull requests targeting `main` or `develop`, the CI workflow:
 - Installs frontend dependencies
 - Builds the frontend
 - Installs backend dependencies
+- Generates the Prisma Client
 - Builds the backend
 
 ## Planned Features

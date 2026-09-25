@@ -192,6 +192,12 @@ npx prisma studio
 
 Prisma Studio allows you to inspect and manage database records through a local web interface.
 
+
+### Generate Prisma Client
+
+```bash
+npm run prisma:generate
+
 ## Current Database Models
 
 ### User
