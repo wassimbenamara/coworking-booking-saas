@@ -152,6 +152,9 @@ npx prisma studio
 - PostgreSQL database with Docker
 - Prisma ORM configuration
 - Initial User database model
+- User registration
+- Request validation with Zod
+- Password hashing with Argon2
 - GitHub Actions CI workflow
 
 ## Development Workflow
@@ -192,7 +195,6 @@ On pushes and pull requests targeting `main` or `develop`, the CI workflow:
 
 ## Planned Features
 
-- User registration
 - User authentication
 - Role management
 - Coworking space management
