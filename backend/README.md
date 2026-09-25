@@ -9,6 +9,8 @@ REST API for the Coworking Booking SaaS project.
 - Express
 - PostgreSQL
 - Prisma ORM
+- Zod
+- Argon2
 
 ## Planned Technologies
 
@@ -97,6 +99,63 @@ Example response:
 }
 ```
 
+### User registration
+
+```http
+POST /api/auth/register
+```
+
+Request body:
+
+```json
+{
+  "firstName": "Wassim",
+  "lastName": "Ben Amara",
+  "email": "wassim@example.com",
+  "password": "StrongPassword123!"
+}
+```
+
+Successful response:
+
+```http
+201 Created
+```
+
+```json
+{
+  "id": 1,
+  "firstName": "Wassim",
+  "lastName": "Ben Amara",
+  "email": "wassim@example.com",
+  "createdAt": "2026-09-26T00:00:00.000Z"
+}
+```
+
+Invalid request data:
+
+```http
+400 Bad Request
+```
+
+```json
+{
+  "message": "Invalid request data"
+}
+```
+
+Email already registered:
+
+```http
+409 Conflict
+```
+
+```json
+{
+  "message": "Email already exists"
+}
+```
+
 ## Database
 
 The backend uses PostgreSQL with Prisma ORM.
@@ -133,6 +192,12 @@ npx prisma studio
 
 Prisma Studio allows you to inspect and manage database records through a local web interface.
 
+
+### Generate Prisma Client
+
+```bash
+npm run prisma:generate
+
 ## Current Database Models
 
 ### User
@@ -157,6 +222,18 @@ backend/
 │   ├── migrations/
 │   └── schema.prisma
 ├── src/
+│   ├── controllers/
+│   │   └── auth.controller.ts
+│   ├── generated/
+│   │   └── prisma/
+│   ├── lib/
+│   │   └── prisma.ts
+│   ├── routes/
+│   │   └── auth.routes.ts
+│   ├── schemas/
+│   │   └── auth.schema.ts
+│   ├── services/
+│   │   └── auth.service.ts
 │   └── server.ts
 ├── .env.example
 ├── prisma7.config.ts
@@ -175,10 +252,13 @@ The project structure will evolve as new features are added.
 - Prisma ORM configuration
 - Initial database migration
 - User database model
+- User registration
+- Request validation with Zod
+- Password hashing with Argon2
+- Duplicate email prevention
 
 ## Planned Features
 
-- User registration
 - User authentication
 - Role management
 - Coworking space management
