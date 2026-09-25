@@ -2,7 +2,7 @@
 
 A full-stack SaaS application for booking coworking spaces.
 
-The project is built incrementally, with one feature added at a time.
+The project is developed incrementally, with one feature added at a time.
 
 ## Tech Stack
 
@@ -21,17 +21,15 @@ The project is built incrementally, with one feature added at a time.
 ### Database
 
 - PostgreSQL
-- Prisma
+- Prisma ORM
 
-### Planned Tools
+### DevOps & Tooling
 
-- Swagger / OpenAPI
-- JWT Authentication
-- Argon2 or bcrypt
-- Vitest
-- Supertest
 - Docker
 - GitHub Actions
+- Swagger / OpenAPI
+- Vitest
+- Supertest
 
 ## Project Structure
 
@@ -39,22 +37,28 @@ The project is built incrementally, with one feature added at a time.
 coworking-booking-saas/
 ├── frontend/
 ├── backend/
-├── README.md
-└── .gitignore
-```
-
-## Installation
-
-Clone the repository:
-
-```bash
-git clone <repository-url>
-cd coworking-booking-saas
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+└── README.md
 ```
 
 ## Environment Variables
 
-The frontend requires an environment variable to communicate with the backend API.
+### Root environment
+
+Create a `.env` file at the project root based on `.env.example`.
+
+Example:
+
+```env
+POSTGRES_USER=coworking_user
+POSTGRES_PASSWORD=change_me
+POSTGRES_DB=coworking_db
+POSTGRES_PORT=5432
+```
+
+### Frontend environment
 
 Create a `.env` file inside the `frontend` directory:
 
@@ -62,38 +66,39 @@ Create a `.env` file inside the `frontend` directory:
 VITE_API_URL=http://localhost:3000
 ```
 
-You can use the provided example file:
+### Backend environment
 
-```text
-frontend/.env.example
+Create a `.env` file inside the `backend` directory:
+
+```env
+DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
 ```
 
-The `.env` file is ignored by Git and should not be committed.
+Environment files are ignored by Git and must not be committed.
 
-### Frontend
+## Getting Started
 
-Create the environment file:
+### 1. Start PostgreSQL
+
+From the project root:
 
 ```bash
-cd frontend
+docker compose up -d
 ```
-Copy `.env.example` to `.env` and update the values if necessary.
 
-
-Then install the dependencies and start the development server:
+Check that the database is running:
 
 ```bash
-npm install
-npm run dev
+docker compose ps
 ```
 
-The frontend is available by default at:
+To stop the database:
 
-```text
-http://localhost:5173
+```bash
+docker compose down
 ```
 
-### Backend
+### 2. Start the backend
 
 ```bash
 cd backend
@@ -107,29 +112,86 @@ The backend API is available by default at:
 http://localhost:3000
 ```
 
-## Development Approach
+### 3. Start the frontend
 
-The project is developed step by step.
-
-Each development cycle follows this approach:
-
-```text
-Feature
-   ↓
-Implementation
-   ↓
-Testing
-   ↓
-Commit
-   ↓
-Push
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-This makes it easier to keep the project organized and track its evolution.
+The frontend is available by default at:
+
+```text
+http://localhost:5173
+```
+
+## Database
+
+The project uses PostgreSQL with Prisma ORM.
+
+Apply database migrations:
+
+```bash
+cd backend
+npx prisma migrate dev
+```
+
+Open Prisma Studio:
+
+```bash
+npx prisma studio
+```
+
+## Current Features
+
+- Frontend and backend initialization
+- Health check endpoint
+- Frontend-to-backend API communication
+- Environment variable configuration
+- PostgreSQL database with Docker
+- Prisma ORM configuration
+- Initial User database model
+- GitHub Actions CI workflow
+
+## Development Workflow
+
+The project follows a feature-based Git workflow:
+
+```text
+feature/*
+    ↓
+Pull Request
+    ↓
+develop
+    ↓
+Pull Request
+    ↓
+main
+```
+
+Example branch names:
+
+```text
+feature/database-setup
+feature/user-registration
+feature/booking-system
+fix/booking-conflict
+```
+
+## Continuous Integration
+
+The project uses GitHub Actions for continuous integration.
+
+On pushes and pull requests targeting `main` or `develop`, the CI workflow:
+
+- Installs frontend dependencies
+- Builds the frontend
+- Installs backend dependencies
+- Builds the backend
 
 ## Planned Features
 
-- Health check API
 - User registration
 - User authentication
 - Role management
@@ -140,14 +202,13 @@ This makes it easier to keep the project organized and track its evolution.
 - Booking conflict prevention
 - User reservations
 - Admin dashboard
-- API documentation with Swagger
+- Swagger API documentation
 - Automated tests
-- Docker setup
-- CI/CD with GitHub Actions
+- CI/CD improvements
 
 ## Documentation
 
-More information about each part of the application is available in:
+More information is available in:
 
 ```text
 frontend/README.md

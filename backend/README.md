@@ -7,17 +7,16 @@ REST API for the Coworking Booking SaaS project.
 - Node.js
 - TypeScript
 - Express
+- PostgreSQL
+- Prisma ORM
 
 ## Planned Technologies
 
-- PostgreSQL
-- Prisma
 - Swagger / OpenAPI
 - JWT Authentication
 - Argon2 or bcrypt
 - Vitest
 - Supertest
-- Docker
 
 ## Installation
 
@@ -26,6 +25,16 @@ Install the dependencies:
 ```bash
 npm install
 ```
+
+## Environment Variables
+
+Create a `.env` file inside the `backend` directory.
+
+```env
+DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
+```
+
+The `.env` file is ignored by Git and should not be committed.
 
 ## Development
 
@@ -57,7 +66,9 @@ Start the production server:
 npm start
 ```
 
-## Current Endpoint
+## Current Endpoints
+
+### API root
 
 ```http
 GET /
@@ -71,24 +82,102 @@ Example response:
 }
 ```
 
+### Health check
+
+```http
+GET /api/health
+```
+
+Example response:
+
+```json
+{
+  "status": "ok",
+  "service": "coworking-booking-api"
+}
+```
+
+## Database
+
+The backend uses PostgreSQL with Prisma ORM.
+
+### Validate Prisma schema
+
+```bash
+npx prisma validate
+```
+
+### Apply migrations
+
+```bash
+npx prisma migrate dev
+```
+
+### Create a new migration
+
+```bash
+npx prisma migrate dev --name migration_name
+```
+
+Example:
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### Open Prisma Studio
+
+```bash
+npx prisma studio
+```
+
+Prisma Studio allows you to inspect and manage database records through a local web interface.
+
+## Current Database Models
+
+### User
+
+The initial database schema contains a `User` model with:
+
+```text
+id
+email
+firstName
+lastName
+password
+createdAt
+updatedAt
+```
+
 ## Project Structure
 
 ```text
-src/
-├── controllers/
-├── routes/
-├── services/
-├── middlewares/
-├── repositories/
-├── types/
-└── server.ts
+backend/
+├── prisma/
+│   ├── migrations/
+│   └── schema.prisma
+├── src/
+│   └── server.ts
+├── .env.example
+├── prisma7.config.ts
+├── package.json
+└── tsconfig.json
 ```
 
 The project structure will evolve as new features are added.
 
+## Current Features
+
+- Express REST API
+- TypeScript configuration
+- Health check endpoint
+- PostgreSQL database connection
+- Prisma ORM configuration
+- Initial database migration
+- User database model
+
 ## Planned Features
 
-- Health check endpoint
 - User registration
 - User authentication
 - Role management
@@ -96,7 +185,7 @@ The project structure will evolve as new features are added.
 - Room and desk management
 - Booking system
 - Booking conflict prevention
-- API documentation with Swagger
+- Swagger API documentation
 - Automated tests
 
 ## Status
