@@ -7,6 +7,7 @@ Frontend application for the Coworking Booking SaaS project.
 - React
 - TypeScript
 - Vite
+- React Router
 
 ## Installation
 
@@ -46,6 +47,16 @@ Preview the production build locally:
 npm run preview
 ```
 
+## Environment Variables
+
+Create a `.env` file in the frontend directory:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+The `.env` file is ignored by Git and should not be committed.
+
 ## Project Structure
 
 ```text
@@ -53,16 +64,40 @@ src/
 ├── assets/
 ├── components/
 ├── pages/
+│   └── RegisterPage.tsx
 ├── services/
+│   └── auth.service.ts
 ├── types/
+│   └── auth.ts
 ├── App.tsx
 └── main.tsx
 ```
 
 The project structure will evolve as new features are added.
 
+## Current Features
+
+- Backend API communication
+- API health status integration
+- User registration page
+- User registration form
+- Registration API integration
+- Registration success and error handling
+- Basic client-side form validation
+
+## Routes
+
+### User registration
+
+```text
+/register
+```
+
+Allows users to create a new account.
+
 ## Planned Features
 
+- User login
 - User authentication
 - Coworking spaces listing
 - Coworking space details
@@ -70,13 +105,6 @@ The project structure will evolve as new features are added.
 - Booking interface
 - User reservations
 - Admin dashboard
-
-## Environment Variables
-
-Create a `.env` file in the frontend directory:
-
-```env
-VITE_API_URL=http://localhost:3000
 
 ## Status
 
