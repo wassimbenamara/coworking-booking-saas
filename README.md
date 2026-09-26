@@ -156,6 +156,8 @@ npx prisma studio
 - Request validation with Zod
 - Password hashing with Argon2
 - GitHub Actions CI workflow
+- User registration UI
+- User registration API integration
 
 ## Development Workflow
 
@@ -196,7 +198,8 @@ On pushes and pull requests targeting `main` or `develop`, the CI workflow:
 
 ## Planned Features
 
-- User authentication
+- User login
+- JWT authentication
 - Role management
 - Coworking space management
 - Room and desk management
@@ -205,7 +208,7 @@ On pushes and pull requests targeting `main` or `develop`, the CI workflow:
 - Booking conflict prevention
 - User reservations
 - Admin dashboard
-- Swagger API documentation
+- Swagger / OpenAPI documentation
 - Automated tests
 - CI/CD improvements
 
