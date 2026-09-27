@@ -277,6 +277,9 @@ The access token is returned after a successful login.
 - GitHub Actions CI workflow- User login UI
 - Login API integration
 - JWT access token storage
+- JWT authentication middleware
+- Protected API routes
+- Authenticated user endpoint
 
 ## Development Workflow
 
@@ -322,8 +325,6 @@ On pushes and pull requests targeting `main` or `develop`, the CI workflow:
 
 ## Planned Features
 
-- Protected routes
-- JWT authentication middleware
 - Role management
 - Coworking space management
 - Room and desk management
