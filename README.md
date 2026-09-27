@@ -4,6 +4,24 @@ A full-stack SaaS application for booking coworking spaces.
 
 The project is developed incrementally, with one feature added at a time.
 
+## Architecture
+
+The project is organized as an npm workspaces monorepo.
+
+```text
+coworking-booking-saas/
+├── frontend/
+├── backend/
+├── packages/
+│   └── shared/
+├── docker-compose.yml
+├── package.json
+├── package-lock.json
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
 ## Tech Stack
 
 ### Frontend
@@ -29,6 +47,12 @@ The project is developed incrementally, with one feature added at a time.
 - PostgreSQL
 - Prisma ORM
 
+### Shared Package
+
+- npm Workspaces
+- TypeScript
+- Zod
+
 ### DevOps & Tooling
 
 - Docker
@@ -37,17 +61,51 @@ The project is developed incrementally, with one feature added at a time.
 - Vitest
 - Supertest
 
-## Project Structure
+## Workspaces
+
+The monorepo contains three main workspaces:
 
 ```text
-coworking-booking-saas/
-├── frontend/
-├── backend/
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
-└── README.md
+frontend
+backend
+@coworking/shared
 ```
+
+The shared package contains code used by both the frontend and backend.
+
+Current shared resources include:
+
+- Authentication validation schemas
+- Shared TypeScript types
+
+## Shared Package
+
+The shared package is located at:
+
+```text
+packages/shared
+```
+
+It is imported by the frontend and backend through:
+
+```ts
+import {
+  registerSchema,
+  type RegisterInput,
+} from "@coworking/shared";
+```
+
+This avoids duplicating validation rules and shared types across applications.
+
+## Installation
+
+Install all workspace dependencies from the project root:
+
+```bash
+npm install
+```
+
+The project uses a single root `package-lock.json`.
 
 ## Environment Variables
 
@@ -84,32 +142,42 @@ Environment files are ignored by Git and must not be committed.
 
 ## Getting Started
 
-### 1. Start PostgreSQL
+### 1. Install dependencies
 
 From the project root:
+
+```bash
+npm install
+```
+
+### 2. Start PostgreSQL
 
 ```bash
 docker compose up -d
 ```
 
-Check that the database is running:
+Check the database status:
 
 ```bash
 docker compose ps
 ```
 
-To stop the database:
+Stop the database:
 
 ```bash
 docker compose down
 ```
 
-### 2. Start the backend
+### 3. Build the shared package
 
 ```bash
-cd backend
-npm install
-npm run dev
+npm run build:shared
+```
+
+### 4. Start the backend
+
+```bash
+npm run dev --workspace=backend
 ```
 
 The backend API is available by default at:
@@ -118,12 +186,10 @@ The backend API is available by default at:
 http://localhost:3000
 ```
 
-### 3. Start the frontend
+### 5. Start the frontend
 
 ```bash
-cd frontend
-npm install
-npm run dev
+npm run dev --workspace=frontend
 ```
 
 The frontend is available by default at:
@@ -132,41 +198,68 @@ The frontend is available by default at:
 http://localhost:5173
 ```
 
-## Database
+## Build
 
-The project uses PostgreSQL with Prisma ORM.
-
-Apply database migrations:
+Build the entire monorepo:
 
 ```bash
-cd backend
-npx prisma migrate dev
+npm run build
 ```
+
+This runs:
+
+```text
+shared
+↓
+frontend
+↓
+backend
+```
+
+You can also build workspaces separately:
+
+```bash
+npm run build:shared
+npm run build:frontend
+npm run build:backend
+```
+
+## Database
+
+The backend uses PostgreSQL with Prisma ORM.
 
 Generate the Prisma Client:
 
 ```bash
-npm run prisma:generate
+npm run prisma:generate --workspace=backend
+```
+
+Apply database migrations:
+
+```bash
+npm exec --workspace=backend prisma migrate dev
 ```
 
 Open Prisma Studio:
 
 ```bash
-npx prisma studio
+npm exec --workspace=backend prisma studio
 ```
 
 ## Current Features
 
+- npm workspaces monorepo architecture
+- Shared validation package
 - Frontend and backend initialization
 - Health check endpoint
 - Frontend-to-backend API communication
 - Environment variable configuration
 - PostgreSQL database with Docker
 - Prisma ORM configuration
-- Initial User database model
+- User database model
 - User registration API
 - Password hashing with Argon2
-- Request validation with Zod
+- Shared request validation with Zod
 - User registration UI
 - Registration API integration
 - Reusable frontend UI system with Tailwind CSS and shadcn/ui
@@ -188,6 +281,12 @@ Pull Request
 main
 ```
 
+Refactors use dedicated branches:
+
+```text
+refactor/monorepo-shared
+```
+
 Example branch names:
 
 ```text
@@ -195,7 +294,10 @@ feature/database-setup
 feature/user-registration
 feature/user-registration-ui
 feature/ui-system
+feature/user-login
+
 fix/booking-conflict
+
 refactor/monorepo-shared
 ```
 
@@ -205,9 +307,9 @@ The project uses GitHub Actions for continuous integration.
 
 On pushes and pull requests targeting `main` or `develop`, the CI workflow:
 
-- Installs frontend dependencies
+- Installs monorepo dependencies from the root
+- Builds the shared package
 - Builds the frontend
-- Installs backend dependencies
 - Generates the Prisma Client
 - Builds the backend
 
@@ -234,6 +336,7 @@ More information is available in:
 ```text
 frontend/README.md
 backend/README.md
+packages/shared/
 ```
 
 ## Project Status

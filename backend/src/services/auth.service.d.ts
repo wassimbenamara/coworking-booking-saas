@@ -1,4 +1,4 @@
-import type { RegisterInput } from "../schemas/auth.schema.js";
+import type { RegisterInput } from "@coworking/shared";
 export declare function registerUser(data: RegisterInput): Promise<{
     createdAt: Date;
     email: string;

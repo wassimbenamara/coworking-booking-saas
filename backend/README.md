@@ -2,6 +2,8 @@
 
 REST API for the Coworking Booking SaaS project.
 
+The backend is part of an npm workspaces monorepo.
+
 ## Tech Stack
 
 - Node.js
@@ -12,25 +14,40 @@ REST API for the Coworking Booking SaaS project.
 - Zod
 - Argon2
 
-## Planned Technologies
+## Shared Package
 
-- Swagger / OpenAPI
-- JWT Authentication
-- Argon2 or bcrypt
-- Vitest
-- Supertest
+The backend uses the internal workspace package:
+
+```text
+@coworking/shared
+```
+
+The shared package contains validation schemas and TypeScript types used by both the frontend and backend.
+
+Example:
+
+```ts
+import {
+  registerSchema,
+  type RegisterInput,
+} from "@coworking/shared";
+```
+
+The backend remains the authoritative validation layer even when the same schema is also used by the frontend.
 
 ## Installation
 
-Install the dependencies:
+Dependencies are installed from the monorepo root:
 
 ```bash
 npm install
 ```
 
+Avoid creating a separate backend `package-lock.json`.
+
 ## Environment Variables
 
-Create a `.env` file inside the `backend` directory.
+Create a `.env` file inside the `backend` directory:
 
 ```env
 DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
@@ -40,7 +57,13 @@ The `.env` file is ignored by Git and should not be committed.
 
 ## Development
 
-Start the development server:
+From the project root:
+
+```bash
+npm run dev --workspace=backend
+```
+
+Or from the backend directory:
 
 ```bash
 npm run dev
@@ -54,18 +77,67 @@ http://localhost:3000
 
 ## Build
 
-Create a production build:
+From the project root:
+
+```bash
+npm run build:backend
+```
+
+Or from the backend directory:
 
 ```bash
 npm run build
 ```
 
-## Start
-
-Start the production server:
+The shared package must be built before the backend:
 
 ```bash
-npm start
+npm run build:shared
+npm run build:backend
+```
+
+## Start
+
+```bash
+npm run start --workspace=backend
+```
+
+## Prisma
+
+### Generate Prisma Client
+
+```bash
+npm run prisma:generate --workspace=backend
+```
+
+### Validate Prisma schema
+
+```bash
+npm exec --workspace=backend prisma validate
+```
+
+### Apply migrations
+
+```bash
+npm exec --workspace=backend prisma migrate dev
+```
+
+### Create a named migration
+
+```bash
+npm exec --workspace=backend prisma migrate dev -- --name migration_name
+```
+
+Example:
+
+```bash
+npm exec --workspace=backend prisma migrate dev -- --name init
+```
+
+### Open Prisma Studio
+
+```bash
+npm exec --workspace=backend prisma studio
 ```
 
 ## Current Endpoints
@@ -138,71 +210,15 @@ Invalid request data:
 400 Bad Request
 ```
 
-```json
-{
-  "message": "Invalid request data"
-}
-```
-
 Email already registered:
 
 ```http
 409 Conflict
 ```
 
-```json
-{
-  "message": "Email already exists"
-}
-```
-
-## Database
-
-The backend uses PostgreSQL with Prisma ORM.
-
-### Validate Prisma schema
-
-```bash
-npx prisma validate
-```
-
-### Apply migrations
-
-```bash
-npx prisma migrate dev
-```
-
-### Create a new migration
-
-```bash
-npx prisma migrate dev --name migration_name
-```
-
-Example:
-
-```bash
-npx prisma migrate dev --name init
-```
-
-### Open Prisma Studio
-
-```bash
-npx prisma studio
-```
-
-Prisma Studio allows you to inspect and manage database records through a local web interface.
-
-
-### Generate Prisma Client
-
-```bash
-npm run prisma:generate
-
 ## Current Database Models
 
 ### User
-
-The initial database schema contains a `User` model with:
 
 ```text
 id
@@ -213,6 +229,8 @@ password
 createdAt
 updatedAt
 ```
+
+Passwords are stored as Argon2 hashes and are never returned by the registration API.
 
 ## Project Structure
 
@@ -230,8 +248,6 @@ backend/
 │   │   └── prisma.ts
 │   ├── routes/
 │   │   └── auth.routes.ts
-│   ├── schemas/
-│   │   └── auth.schema.ts
 │   ├── services/
 │   │   └── auth.service.ts
 │   └── server.ts
@@ -241,7 +257,11 @@ backend/
 └── tsconfig.json
 ```
 
-The project structure will evolve as new features are added.
+Shared validation schemas are located at:
+
+```text
+packages/shared/
+```
 
 ## Current Features
 
@@ -253,19 +273,20 @@ The project structure will evolve as new features are added.
 - Initial database migration
 - User database model
 - User registration
-- Request validation with Zod
+- Shared request validation with Zod
 - Password hashing with Argon2
 - Duplicate email prevention
 
 ## Planned Features
 
-- User authentication
+- User login
+- JWT authentication
 - Role management
 - Coworking space management
 - Room and desk management
 - Booking system
 - Booking conflict prevention
-- Swagger API documentation
+- Swagger / OpenAPI documentation
 - Automated tests
 
 ## Status
