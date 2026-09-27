@@ -2,6 +2,8 @@
 
 Frontend application for the Coworking Booking SaaS project.
 
+The frontend is part of an npm workspaces monorepo.
+
 ## Tech Stack
 
 - React
@@ -11,18 +13,48 @@ Frontend application for the Coworking Booking SaaS project.
 - Tailwind CSS
 - shadcn/ui
 - Base UI
+- Zod
+
+## Shared Package
+
+The frontend uses the internal workspace package:
+
+```text
+@coworking/shared
+```
+
+It provides shared validation schemas and TypeScript types used by both the frontend and backend.
+
+Example:
+
+```ts
+import {
+  registerSchema,
+  type RegisterInput,
+} from "@coworking/shared";
+```
+
+This keeps frontend and backend validation rules synchronized.
 
 ## Installation
 
-Install the dependencies:
+Dependencies are installed from the monorepo root:
 
 ```bash
 npm install
 ```
 
+Avoid creating a separate frontend `package-lock.json`.
+
 ## Development
 
-Start the development server:
+From the project root:
+
+```bash
+npm run dev --workspace=frontend
+```
+
+Or from the frontend directory:
 
 ```bash
 npm run dev
@@ -36,23 +68,34 @@ http://localhost:5173
 
 ## Build
 
-Create a production build:
+From the project root:
+
+```bash
+npm run build:frontend
+```
+
+Or from the frontend directory:
 
 ```bash
 npm run build
 ```
 
-## Preview
-
-Preview the production build locally:
+The shared package must be built before the frontend when necessary:
 
 ```bash
-npm run preview
+npm run build:shared
+npm run build:frontend
+```
+
+## Preview
+
+```bash
+npm run preview --workspace=frontend
 ```
 
 ## Environment Variables
 
-Create a `.env` file in the frontend directory:
+Create a `.env` file inside the `frontend` directory:
 
 ```env
 VITE_API_URL=http://localhost:3000
@@ -63,26 +106,31 @@ The `.env` file is ignored by Git and should not be committed.
 ## Project Structure
 
 ```text
-src/
-├── assets/
-├── components/
-│   └── ui/
-│       ├── button.tsx
-│       ├── card.tsx
-│       ├── input.tsx
-│       └── label.tsx
-├── pages/
-│   └── RegisterPage.tsx
-├── services/
-│   └── auth.service.ts
-├── types/
-│   └── auth.ts
-├── App.tsx
-├── index.css
-└── main.tsx
+frontend/
+└── src/
+    ├── assets/
+    ├── components/
+    │   └── ui/
+    │       ├── button.tsx
+    │       ├── card.tsx
+    │       ├── input.tsx
+    │       └── label.tsx
+    ├── pages/
+    │   └── RegisterPage.tsx
+    ├── services/
+    │   └── auth.service.ts
+    ├── types/
+    │   └── auth.ts
+    ├── App.tsx
+    ├── index.css
+    └── main.tsx
 ```
 
-The project structure will evolve as new features are added.
+Shared schemas and shared request types are located outside the frontend workspace:
+
+```text
+packages/shared/
+```
 
 ## UI System
 
@@ -103,9 +151,9 @@ Additional components will be added progressively as new features are developed.
 - API health status integration
 - User registration page
 - User registration form
+- Shared Zod validation
 - Registration API integration
 - Registration success and error handling
-- Basic client-side form validation
 - Reusable UI components with shadcn/ui
 
 ## Routes

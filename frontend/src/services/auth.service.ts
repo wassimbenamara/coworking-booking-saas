@@ -1,16 +1,26 @@
-import type { RegisterPayload, RegisteredUser } from "../types/auth";
+import {
+  registerSchema,
+  type RegisterInput,
+} from "@coworking/shared";
+import type { RegisteredUser } from "../types/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function registerUser(
-  payload: RegisterPayload
+  payload: RegisterInput
 ): Promise<RegisteredUser> {
+
+  const validation = registerSchema.safeParse(payload);
+   
+  if (!validation.success) {
+    throw new Error("INVALID_DATA");
+  }
   const response = await fetch(`${API_URL}/api/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(validation.data),
   });
 
   if (response.status === 409) {

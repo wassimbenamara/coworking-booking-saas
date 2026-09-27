@@ -1,6 +1,6 @@
 import argon2 from "argon2";
 import { prisma } from "../lib/prisma.js";
-import type { RegisterInput } from "../schemas/auth.schema.js";
+import type { RegisterInput } from "@coworking/shared";
 
 export async function registerUser(data: RegisterInput) {
   const existingUser = await prisma.user.findUnique({

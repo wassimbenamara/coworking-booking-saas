@@ -1,4 +1,4 @@
-import { registerSchema } from "../schemas/auth.schema.js";
+import { registerSchema } from "@coworking/shared";
 import { registerUser } from "../services/auth.service.js";
 export async function register(req, res) {
     const validation = registerSchema.safeParse(req.body);
