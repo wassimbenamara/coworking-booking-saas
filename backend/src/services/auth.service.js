@@ -1,5 +1,7 @@
 import argon2 from "argon2";
 import { prisma } from "../lib/prisma.js";
+import jwt from "jsonwebtoken";
+import { authConfig } from "../config/auth.config.js";
 export async function registerUser(data) {
     const existingUser = await prisma.user.findUnique({
         where: {
@@ -26,5 +28,34 @@ export async function registerUser(data) {
         },
     });
     return user;
+}
+export async function loginUser(data) {
+    const user = await prisma.user.findUnique({
+        where: {
+            email: data.email,
+        },
+    });
+    if (!user) {
+        throw new Error("INVALID_CREDENTIALS");
+    }
+    const passwordIsValid = await argon2.verify(user.password, data.password);
+    if (!passwordIsValid) {
+        throw new Error("INVALID_CREDENTIALS");
+    }
+    const accessToken = jwt.sign({
+        sub: user.id.toString(),
+        email: user.email,
+    }, authConfig.jwtSecret, {
+        expiresIn: authConfig.jwtExpiresIn,
+    });
+    return {
+        user: {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+        },
+        accessToken,
+    };
 }
 //# sourceMappingURL=auth.service.js.map

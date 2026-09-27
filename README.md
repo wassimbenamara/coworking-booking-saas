@@ -41,6 +41,7 @@ coworking-booking-saas/
 - Express
 - Zod
 - Argon2
+- JSON Web Token (JWT)
 
 ### Database
 
@@ -91,7 +92,9 @@ It is imported by the frontend and backend through:
 ```ts
 import {
   registerSchema,
+  loginSchema,
   type RegisterInput,
+  type LoginInput,
 } from "@coworking/shared";
 ```
 
@@ -136,6 +139,9 @@ Create a `.env` file inside the `backend` directory:
 
 ```env
 DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
+
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=1h
 ```
 
 Environment files are ignored by Git and must not be committed.
@@ -206,16 +212,6 @@ Build the entire monorepo:
 npm run build
 ```
 
-This runs:
-
-```text
-shared
-↓
-frontend
-↓
-backend
-```
-
 You can also build workspaces separately:
 
 ```bash
@@ -246,6 +242,18 @@ Open Prisma Studio:
 npm exec --workspace=backend prisma studio
 ```
 
+## Authentication
+
+The authentication flow currently supports:
+
+- User registration
+- Password hashing with Argon2
+- User login
+- JWT access token generation
+- Shared request validation with Zod
+
+The access token is returned after a successful login.
+
 ## Current Features
 
 - npm workspaces monorepo architecture
@@ -262,6 +270,9 @@ npm exec --workspace=backend prisma studio
 - Shared request validation with Zod
 - User registration UI
 - Registration API integration
+- User login API
+- JWT access token generation
+- Invalid credentials handling
 - Reusable frontend UI system with Tailwind CSS and shadcn/ui
 - GitHub Actions CI workflow
 
@@ -279,12 +290,6 @@ develop
 Pull Request
     ↓
 main
-```
-
-Refactors use dedicated branches:
-
-```text
-refactor/monorepo-shared
 ```
 
 Example branch names:
@@ -315,8 +320,9 @@ On pushes and pull requests targeting `main` or `develop`, the CI workflow:
 
 ## Planned Features
 
-- User login
-- JWT authentication
+- Login UI
+- Protected routes
+- JWT authentication middleware
 - Role management
 - Coworking space management
 - Room and desk management

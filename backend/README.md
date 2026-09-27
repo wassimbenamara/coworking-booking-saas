@@ -13,6 +13,7 @@ The backend is part of an npm workspaces monorepo.
 - Prisma ORM
 - Zod
 - Argon2
+- JSON Web Token (JWT)
 
 ## Shared Package
 
@@ -29,11 +30,13 @@ Example:
 ```ts
 import {
   registerSchema,
+  loginSchema,
   type RegisterInput,
+  type LoginInput,
 } from "@coworking/shared";
 ```
 
-The backend remains the authoritative validation layer even when the same schema is also used by the frontend.
+The backend remains the authoritative validation layer.
 
 ## Installation
 
@@ -51,6 +54,9 @@ Create a `.env` file inside the `backend` directory:
 
 ```env
 DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
+
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=1h
 ```
 
 The `.env` file is ignored by Git and should not be committed.
@@ -61,12 +67,6 @@ From the project root:
 
 ```bash
 npm run dev --workspace=backend
-```
-
-Or from the backend directory:
-
-```bash
-npm run dev
 ```
 
 The API is available by default at:
@@ -81,12 +81,6 @@ From the project root:
 
 ```bash
 npm run build:backend
-```
-
-Or from the backend directory:
-
-```bash
-npm run build
 ```
 
 The shared package must be built before the backend:
@@ -120,18 +114,6 @@ npm exec --workspace=backend prisma validate
 
 ```bash
 npm exec --workspace=backend prisma migrate dev
-```
-
-### Create a named migration
-
-```bash
-npm exec --workspace=backend prisma migrate dev -- --name migration_name
-```
-
-Example:
-
-```bash
-npm exec --workspace=backend prisma migrate dev -- --name init
 ```
 
 ### Open Prisma Studio
@@ -216,6 +198,76 @@ Email already registered:
 409 Conflict
 ```
 
+### User login
+
+```http
+POST /api/auth/login
+```
+
+Request body:
+
+```json
+{
+  "email": "wassim@example.com",
+  "password": "StrongPassword123!"
+}
+```
+
+Successful response:
+
+```http
+200 OK
+```
+
+```json
+{
+  "user": {
+    "id": 1,
+    "firstName": "Wassim",
+    "lastName": "Ben Amara",
+    "email": "wassim@example.com"
+  },
+  "accessToken": "jwt-token"
+}
+```
+
+Invalid request data:
+
+```http
+400 Bad Request
+```
+
+Invalid email or password:
+
+```http
+401 Unauthorized
+```
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+The same error is returned for an unknown email and an incorrect password to avoid exposing whether an account exists.
+
+## Authentication
+
+Passwords are hashed using Argon2.
+
+On successful login, the API generates a JWT access token.
+
+The token currently contains:
+
+```text
+sub
+email
+```
+
+The `sub` claim contains the user's ID.
+
+Sensitive information such as passwords is never stored inside the JWT.
+
 ## Current Database Models
 
 ### User
@@ -230,7 +282,7 @@ createdAt
 updatedAt
 ```
 
-Passwords are stored as Argon2 hashes and are never returned by the registration API.
+Passwords are stored as Argon2 hashes.
 
 ## Project Structure
 
@@ -240,6 +292,8 @@ backend/
 │   ├── migrations/
 │   └── schema.prisma
 ├── src/
+│   ├── config/
+│   │   └── auth.config.ts
 │   ├── controllers/
 │   │   └── auth.controller.ts
 │   ├── generated/
@@ -257,10 +311,10 @@ backend/
 └── tsconfig.json
 ```
 
-Shared validation schemas are located at:
+Shared authentication schemas are located in:
 
 ```text
-packages/shared/
+packages/shared/src/schemas/auth.schema.ts
 ```
 
 ## Current Features
@@ -273,14 +327,17 @@ packages/shared/
 - Initial database migration
 - User database model
 - User registration
+- User login
 - Shared request validation with Zod
 - Password hashing with Argon2
 - Duplicate email prevention
+- JWT access token generation
+- Invalid credentials protection
 
 ## Planned Features
 
-- User login
-- JWT authentication
+- Authentication middleware
+- Protected routes
 - Role management
 - Coworking space management
 - Room and desk management
