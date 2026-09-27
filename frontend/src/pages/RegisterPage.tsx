@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { registerUser } from "../services/auth.service";
+import { registerUser } from "@/services/auth.service";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
@@ -48,61 +59,72 @@ export default function RegisterPage() {
   }
 
   return (
-    <main>
-      <h1>Create an account</h1>
+    <main className="flex min-h-screen items-center justify-center bg-muted px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Create an account</CardTitle>
+          <CardDescription>
+            Create your account to start booking coworking spaces.
+          </CardDescription>
+        </CardHeader>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="firstName">First name</label>
-          <input
-            id="firstName"
-            type="text"
-            value={firstName}
-            onChange={(event) => setFirstName(event.target.value)}
-            required
-          />
-        </div>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First name</Label>
+              <Input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+                required
+              />
+            </div>
 
-        <div>
-          <label htmlFor="lastName">Last name</label>
-          <input
-            id="lastName"
-            type="text"
-            value={lastName}
-            onChange={(event) => setLastName(event.target.value)}
-            required
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last name</Label>
+              <Input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                required
+              />
+            </div>
 
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
 
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            minLength={8}
-            required
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                minLength={8}
+                required
+              />
+            </div>
 
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? "Creating account..." : "Create account"}
-        </button>
-      </form>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Creating account..." : "Create account"}
+            </Button>
 
-      {message && <p>{message}</p>}
+            {message && (
+              <p className="text-sm text-muted-foreground">{message}</p>
+            )}
+          </form>
+        </CardContent>
+      </Card>
     </main>
   );
 }
