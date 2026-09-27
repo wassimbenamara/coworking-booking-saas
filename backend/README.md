@@ -251,6 +251,43 @@ Invalid email or password:
 
 The same error is returned for an unknown email and an incorrect password to avoid exposing whether an account exists.
 
+
+### Current authenticated user
+
+```http
+GET /api/auth/me
+```
+
+Requires a valid JWT access token.
+
+Request header:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Successful response:
+
+```http
+200 OK
+```
+
+```json
+{
+  "user": {
+    "id": 1,
+    "email": "wassim@example.com"
+  }
+}
+```
+
+Missing, invalid or expired token:
+
+```http
+401 Unauthorized
+```
+
+
 ## Authentication
 
 Passwords are hashed using Argon2.
@@ -305,6 +342,10 @@ backend/
 │   ├── services/
 │   │   └── auth.service.ts
 │   └── server.ts
+|   ├── middlewares/
+│       └── auth.middleware.ts
+|   ├── types/
+│       └── express.d.ts
 ├── .env.example
 ├── prisma7.config.ts
 ├── package.json
@@ -333,11 +374,12 @@ packages/shared/src/schemas/auth.schema.ts
 - Duplicate email prevention
 - JWT access token generation
 - Invalid credentials protection
+- JWT authentication middleware
+- Protected routes
+- Authenticated user endpoint
 
 ## Planned Features
 
-- Authentication middleware
-- Protected routes
 - Role management
 - Coworking space management
 - Room and desk management
