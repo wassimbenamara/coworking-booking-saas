@@ -6,3 +6,15 @@ export interface RegisteredUser {
   email: string;
   createdAt: string;
 }
+
+export interface AuthenticatedUser {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export interface LoginResponse {
+  user: AuthenticatedUser;
+  accessToken: string;
+}
