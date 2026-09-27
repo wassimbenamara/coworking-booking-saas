@@ -11,12 +11,18 @@ The project is developed incrementally, with one feature added at a time.
 - React
 - TypeScript
 - Vite
+- React Router
+- Tailwind CSS
+- shadcn/ui
+- Base UI
 
 ### Backend
 
 - Node.js
 - TypeScript
 - Express
+- Zod
+- Argon2
 
 ### Database
 
@@ -137,6 +143,12 @@ cd backend
 npx prisma migrate dev
 ```
 
+Generate the Prisma Client:
+
+```bash
+npm run prisma:generate
+```
+
 Open Prisma Studio:
 
 ```bash
@@ -152,12 +164,13 @@ npx prisma studio
 - PostgreSQL database with Docker
 - Prisma ORM configuration
 - Initial User database model
-- User registration
-- Request validation with Zod
+- User registration API
 - Password hashing with Argon2
-- GitHub Actions CI workflow
+- Request validation with Zod
 - User registration UI
-- User registration API integration
+- Registration API integration
+- Reusable frontend UI system with Tailwind CSS and shadcn/ui
+- GitHub Actions CI workflow
 
 ## Development Workflow
 
@@ -180,8 +193,10 @@ Example branch names:
 ```text
 feature/database-setup
 feature/user-registration
-feature/booking-system
+feature/user-registration-ui
+feature/ui-system
 fix/booking-conflict
+refactor/monorepo-shared
 ```
 
 ## Continuous Integration
