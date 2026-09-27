@@ -274,7 +274,9 @@ The access token is returned after a successful login.
 - JWT access token generation
 - Invalid credentials handling
 - Reusable frontend UI system with Tailwind CSS and shadcn/ui
-- GitHub Actions CI workflow
+- GitHub Actions CI workflow- User login UI
+- Login API integration
+- JWT access token storage
 
 ## Development Workflow
 
@@ -320,7 +322,6 @@ On pushes and pull requests targeting `main` or `develop`, the CI workflow:
 
 ## Planned Features
 
-- Login UI
 - Protected routes
 - JWT authentication middleware
 - Role management

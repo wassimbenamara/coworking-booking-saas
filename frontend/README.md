@@ -155,6 +155,10 @@ Additional components will be added progressively as new features are developed.
 - Registration API integration
 - Registration success and error handling
 - Reusable UI components with shadcn/ui
+- User login page
+- Login API integration
+- JWT access token storage
+- Login success and error handling
 
 ## Routes
 
@@ -163,6 +167,11 @@ Additional components will be added progressively as new features are developed.
 ```text
 /register
 ```
+
+### User login
+
+```text
+/login
 
 Allows users to create a new account.
 
