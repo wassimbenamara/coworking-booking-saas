@@ -1,26 +1,10 @@
 # Coworking Booking SaaS
 
-A full-stack SaaS application for booking coworking spaces.
+A full-stack SaaS application for managing coworking spaces, users, resources, availability, and bookings.
 
-The project is developed incrementally, with one feature added at a time.
+The project is built as an npm workspaces monorepo with a React frontend, Node.js backend, PostgreSQL database, Prisma ORM, and shared TypeScript validation schemas.
 
-## Architecture
-
-The project is organized as an npm workspaces monorepo.
-
-```text
-coworking-booking-saas/
-├── frontend/
-├── backend/
-├── packages/
-│   └── shared/
-├── docker-compose.yml
-├── package.json
-├── package-lock.json
-├── .env.example
-├── .gitignore
-└── README.md
-```
+---
 
 ## Tech Stack
 
@@ -33,88 +17,148 @@ coworking-booking-saas/
 - Tailwind CSS
 - shadcn/ui
 - Base UI
+- Zod
 
 ### Backend
 
 - Node.js
 - TypeScript
 - Express
+- Prisma ORM
+- PostgreSQL
 - Zod
 - Argon2
-- JSON Web Token (JWT)
-
-### Database
-
-- PostgreSQL
-- Prisma ORM
+- JSON Web Tokens (JWT)
 
 ### Shared Package
 
-- npm Workspaces
 - TypeScript
 - Zod
+- npm workspaces
 
-### DevOps & Tooling
+### DevOps
 
 - Docker
+- Docker Compose
 - GitHub Actions
-- Swagger / OpenAPI
-- Vitest
-- Supertest
+- npm workspaces
 
-## Workspaces
+---
 
-The monorepo contains three main workspaces:
+## Project Structure
+
+```text
+coworking-booking-saas/
+├── backend/
+│   ├── prisma/
+│   │   ├── migrations/
+│   │   └── schema.prisma
+│   │
+│   └── src/
+│       ├── config/
+│       ├── controllers/
+│       ├── generated/
+│       ├── lib/
+│       ├── middlewares/
+│       ├── routes/
+│       ├── services/
+│       └── types/
+│
+├── frontend/
+│   └── src/
+│       ├── components/
+│       │   ├── auth/
+│       │   │   └── ProtectedRoute.tsx
+│       │   └── ui/
+│       │
+│       ├── contexts/
+│       │   └── AuthContext.tsx
+│       │
+│       ├── pages/
+│       │   ├── DashboardPage.tsx
+│       │   ├── LoginPage.tsx
+│       │   └── RegisterPage.tsx
+│       │
+│       ├── services/
+│       └── types/
+│
+├── packages/
+│   └── shared/
+│       └── src/
+│           ├── schemas/
+│           └── index.ts
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── docker-compose.yml
+├── package.json
+├── package-lock.json
+├── .env.example
+└── README.md
+```
+
+---
+
+## Monorepo
+
+The project uses npm workspaces.
+
+The following workspaces are available:
 
 ```text
 frontend
 backend
-@coworking/shared
-```
-
-The shared package contains code used by both the frontend and backend.
-
-Current shared resources include:
-
-- Authentication validation schemas
-- Shared TypeScript types
-
-## Shared Package
-
-The shared package is located at:
-
-```text
 packages/shared
 ```
 
-It is imported by the frontend and backend through:
-
-```ts
-import {
-  registerSchema,
-  loginSchema,
-  type RegisterInput,
-  type LoginInput,
-} from "@coworking/shared";
-```
-
-This avoids duplicating validation rules and shared types across applications.
-
-## Installation
-
-Install all workspace dependencies from the project root:
+Dependencies are installed from the project root.
 
 ```bash
 npm install
 ```
 
-The project uses a single root `package-lock.json`.
+A single root `package-lock.json` is used for the whole repository.
+
+---
+
+## Shared Package
+
+Shared validation schemas and TypeScript types are located in:
+
+```text
+packages/shared
+```
+
+The package is available as:
+
+```ts
+@coworking/shared
+```
+
+Example:
+
+```ts
+import {
+  loginSchema,
+  registerSchema,
+  type LoginInput,
+  type RegisterInput,
+} from "@coworking/shared";
+```
+
+This avoids duplicating validation logic between the frontend and backend.
+
+---
 
 ## Environment Variables
 
-### Root environment
+Environment files are not committed to Git.
 
-Create a `.env` file at the project root based on `.env.example`.
+Create the required `.env` files from the provided `.env.example` files.
+
+### Root
 
 Example:
 
@@ -125,94 +169,145 @@ POSTGRES_DB=coworking_db
 POSTGRES_PORT=5432
 ```
 
-### Frontend environment
+### Backend
 
-Create a `.env` file inside the `frontend` directory:
+Example:
+
+```env
+DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
+
+JWT_SECRET=change_me_with_a_long_random_secret
+JWT_EXPIRES_IN=1h
+```
+
+### Frontend
+
+Example:
 
 ```env
 VITE_API_URL=http://localhost:3000
 ```
 
-### Backend environment
+Only variables prefixed with `VITE_` are exposed to the Vite frontend.
 
-Create a `.env` file inside the `backend` directory:
+---
 
-```env
-DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
+## Installation
 
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRES_IN=1h
+Clone the repository:
+
+```bash
+git clone <repository-url>
+cd coworking-booking-saas
 ```
 
-Environment files are ignored by Git and must not be committed.
-
-## Getting Started
-
-### 1. Install dependencies
-
-From the project root:
+Install all workspace dependencies:
 
 ```bash
 npm install
 ```
 
-### 2. Start PostgreSQL
-
-```bash
-docker compose up -d
-```
-
-Check the database status:
-
-```bash
-docker compose ps
-```
-
-Stop the database:
-
-```bash
-docker compose down
-```
-
-### 3. Build the shared package
+Build the shared package:
 
 ```bash
 npm run build:shared
 ```
 
-### 4. Start the backend
+---
+
+## Database
+
+PostgreSQL runs locally using Docker Compose.
+
+Start the database:
+
+```bash
+docker compose up -d
+```
+
+Check the containers:
+
+```bash
+docker compose ps
+```
+
+View PostgreSQL logs:
+
+```bash
+docker compose logs postgres
+```
+
+Stop the containers:
+
+```bash
+docker compose down
+```
+
+> `docker compose down -v` also deletes the PostgreSQL volume and stored database data.
+
+---
+
+## Prisma
+
+The backend uses Prisma with PostgreSQL.
+
+Generate the Prisma client:
+
+```bash
+npm run prisma:generate --workspace=backend
+```
+
+Create or apply a development migration:
+
+```bash
+npx prisma migrate dev --name <migration-name> --schema backend/prisma/schema.prisma
+```
+
+Prisma Studio can be used to inspect the database:
+
+```bash
+npx prisma studio --schema backend/prisma/schema.prisma
+```
+
+---
+
+## Development
+
+### Start the backend
 
 ```bash
 npm run dev --workspace=backend
 ```
 
-The backend API is available by default at:
+Default API URL:
 
 ```text
 http://localhost:3000
 ```
 
-### 5. Start the frontend
+### Start the frontend
 
 ```bash
 npm run dev --workspace=frontend
 ```
 
-The frontend is available by default at:
+Default frontend URL:
 
 ```text
 http://localhost:5173
 ```
 
+---
+
 ## Build
 
-Build the entire monorepo:
+Build the complete monorepo:
 
 ```bash
 npm run build
 ```
 
-You can also build workspaces separately:
+Or build individual workspaces:
 
 ```bash
 npm run build:shared
@@ -220,70 +315,400 @@ npm run build:frontend
 npm run build:backend
 ```
 
-## Database
+---
 
-The backend uses PostgreSQL with Prisma ORM.
+## API
 
-Generate the Prisma Client:
+### API root
 
-```bash
-npm run prisma:generate --workspace=backend
+```http
+GET /
 ```
 
-Apply database migrations:
+Example response:
 
-```bash
-npm exec --workspace=backend prisma migrate dev
+```json
+{
+  "message": "Coworking Booking API"
+}
 ```
 
-Open Prisma Studio:
+---
 
-```bash
-npm exec --workspace=backend prisma studio
+### Health Check
+
+```http
+GET /api/health
 ```
+
+Example response:
+
+```json
+{
+  "status": "ok",
+  "service": "coworking-booking-api"
+}
+```
+
+---
 
 ## Authentication
 
-The authentication flow currently supports:
+### Register
 
-- User registration
-- Password hashing with Argon2
-- User login
-- JWT access token generation
-- Shared request validation with Zod
+```http
+POST /api/auth/register
+```
 
-The access token is returned after a successful login.
+Example request:
+
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+The password is hashed using Argon2 before being stored in the database.
+
+Possible responses include:
+
+```text
+201 Created
+400 Bad Request
+409 Conflict
+```
+
+---
+
+### Login
+
+```http
+POST /api/auth/login
+```
+
+Example request:
+
+```json
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+Example response:
+
+```json
+{
+  "user": {
+    "id": 1,
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@example.com"
+  },
+  "accessToken": "<jwt-access-token>"
+}
+```
+
+Invalid credentials return:
+
+```text
+401 Unauthorized
+```
+
+The API deliberately returns the same error for an unknown email address and an incorrect password to reduce account enumeration risks.
+
+---
+
+### Current Authenticated User
+
+```http
+GET /api/auth/me
+```
+
+This endpoint is protected and requires a valid JWT.
+
+Request header:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Example response:
+
+```json
+{
+  "user": {
+    "id": 1,
+    "email": "john@example.com"
+  }
+}
+```
+
+Missing, invalid, or expired tokens return:
+
+```text
+401 Unauthorized
+```
+
+---
+
+## JWT Authentication Middleware
+
+Protected backend routes use JWT authentication middleware.
+
+The authentication flow is:
+
+```text
+HTTP Request
+    ↓
+Authorization: Bearer <token>
+    ↓
+JWT authentication middleware
+    ↓
+jwt.verify(...)
+    ↓
+Authenticated user attached to req.user
+    ↓
+Protected controller
+```
+
+Authentication and authorization are intentionally separated.
+
+The current middleware verifies the identity of a user.
+
+Role-based authorization will be implemented separately.
+
+---
+
+## Frontend Authentication
+
+The frontend uses React Context to centralize authentication state.
+
+The `AuthContext` manages:
+
+- authenticated user
+- JWT access token
+- login
+- logout
+- session restoration
+- authentication loading state
+
+The application avoids reading authentication state directly from `localStorage` throughout the component tree.
+
+Instead, authentication logic is centralized in the context.
+
+---
+
+## Session Restoration
+
+When the application starts, the frontend checks whether an access token exists.
+
+If a token is available, it requests:
+
+```http
+GET /api/auth/me
+```
+
+The flow is:
+
+```text
+Application starts
+    ↓
+Access token available?
+    ↓
+GET /api/auth/me
+    ↓
+Valid token?
+    ├── Yes → restore authenticated user
+    └── No  → clear local authentication state
+```
+
+The backend remains the source of truth for authentication.
+
+---
+
+## Frontend Routes
+
+### Login
+
+```text
+/login
+```
+
+Allows existing users to authenticate.
+
+Successful authentication redirects the user to:
+
+```text
+/dashboard
+```
+
+---
+
+### Registration
+
+```text
+/register
+```
+
+Allows a new user to create an account.
+
+---
+
+### Dashboard
+
+```text
+/dashboard
+```
+
+This route is protected.
+
+Unauthenticated users are automatically redirected to:
+
+```text
+/login
+```
+
+The dashboard currently displays basic authenticated user information and provides a logout action.
+
+---
+
+## Protected Frontend Routes
+
+Protected React routes use:
+
+```text
+ProtectedRoute
+```
+
+Example flow:
+
+```text
+/dashboard
+    ↓
+ProtectedRoute
+    ↓
+Authentication loading?
+    ↓
+Authenticated user?
+    ├── Yes → render protected page
+    └── No  → redirect to /login
+```
+
+---
+
+## Logout
+
+Logging out clears the frontend authentication state and removes the stored access token.
+
+After logout, protected pages are no longer accessible without authenticating again.
+
+---
 
 ## Current Features
 
-- npm workspaces monorepo architecture
-- Shared validation package
-- Frontend and backend initialization
-- Health check endpoint
-- Frontend-to-backend API communication
-- Environment variable configuration
-- PostgreSQL database with Docker
-- Prisma ORM configuration
-- User database model
+- npm workspaces monorepo
+- React + TypeScript frontend
+- Express + TypeScript backend
+- PostgreSQL database
+- Docker development database
+- Prisma ORM
+- Shared TypeScript and Zod package
+- Shared frontend/backend authentication schemas
 - User registration API
-- Password hashing with Argon2
-- Shared request validation with Zod
 - User registration UI
-- Registration API integration
+- Argon2 password hashing
 - User login API
+- User login UI
 - JWT access token generation
-- Invalid credentials handling
-- Reusable frontend UI system with Tailwind CSS and shadcn/ui
-- GitHub Actions CI workflow- User login UI
-- Login API integration
-- JWT access token storage
 - JWT authentication middleware
-- Protected API routes
+- Protected backend routes
 - Authenticated user endpoint
+- React authentication context
+- Centralized frontend authentication state
+- Session restoration using `/api/auth/me`
+- Protected frontend routes
+- Authenticated dashboard
+- Logout flow
+- Tailwind CSS
+- shadcn/ui with Base UI
+- GitHub Actions CI
+- Monorepo build pipeline
 
-## Development Workflow
+---
 
-The project follows a feature-based Git workflow:
+## Planned Features
+
+- Improved authentication security using HTTP-only cookies
+- Role-based authorization
+- User roles
+- Coworking space management
+- Coworking resource management
+- Desks and meeting rooms
+- Resource availability
+- Booking creation
+- Booking cancellation
+- Booking history
+- Booking conflict prevention
+- Admin dashboard
+- User dashboard improvements
+- API documentation with Swagger / OpenAPI
+- Backend tests with Vitest and Supertest
+- Frontend tests
+- CI test pipeline
+- Improved error handling
+- Form validation UX improvements
+- Deployment
+
+---
+
+## Authentication Security Note
+
+The current MVP stores the JWT access token in browser `localStorage`.
+
+This simplifies the initial authentication implementation, but it is not intended to be the final production authentication architecture.
+
+A future security improvement will migrate authentication toward HTTP-only cookies in order to reduce direct JavaScript access to authentication tokens and limit token exposure in case of XSS vulnerabilities.
+
+---
+
+## CI
+
+GitHub Actions runs CI for pushes and pull requests targeting:
+
+```text
+develop
+main
+```
+
+The CI pipeline:
+
+```text
+Install dependencies
+    ↓
+Build shared package
+    ↓
+Build frontend
+    ↓
+Generate Prisma Client
+    ↓
+Build backend
+```
+
+The full monorepo should also build locally with:
+
+```bash
+npm run build
+```
+
+---
+
+## Git Workflow
+
+Development follows a feature-branch workflow.
 
 ```text
 feature/*
@@ -297,56 +722,141 @@ Pull Request
 main
 ```
 
-Example branch names:
+### Branches
+
+`main`
+
+Stable production-ready branch.
+
+`develop`
+
+Integration branch for completed features.
+
+Feature branches:
 
 ```text
-feature/database-setup
+feature/<feature-name>
+```
+
+Examples:
+
+```text
 feature/user-registration
-feature/user-registration-ui
-feature/ui-system
 feature/user-login
-
-fix/booking-conflict
-
-refactor/monorepo-shared
+feature/auth-middleware
+feature/frontend-auth-state
 ```
 
-## Continuous Integration
-
-The project uses GitHub Actions for continuous integration.
-
-On pushes and pull requests targeting `main` or `develop`, the CI workflow:
-
-- Installs monorepo dependencies from the root
-- Builds the shared package
-- Builds the frontend
-- Generates the Prisma Client
-- Builds the backend
-
-## Planned Features
-
-- Role management
-- Coworking space management
-- Room and desk management
-- Availability management
-- Booking system
-- Booking conflict prevention
-- User reservations
-- Admin dashboard
-- Swagger / OpenAPI documentation
-- Automated tests
-- CI/CD improvements
-
-## Documentation
-
-More information is available in:
+Other branch prefixes may include:
 
 ```text
-frontend/README.md
-backend/README.md
-packages/shared/
+fix/
+refactor/
+chore/
 ```
 
-## Project Status
+---
 
-🚧 Work in progress.
+## Commit Convention
+
+The project follows Conventional Commit-style messages when practical.
+
+Examples:
+
+```text
+feat: add user login
+feat: add frontend authentication state
+fix: handle invalid JWT
+refactor: move schemas to shared package
+chore: update CI configuration
+docs: update authentication documentation
+```
+
+Commits should remain focused and small enough to clearly describe one logical change.
+
+---
+
+## Pull Requests
+
+Feature branches should normally be merged into:
+
+```text
+develop
+```
+
+The `main` branch remains stable.
+
+The `develop` branch will be merged into `main` when the first MVP is complete.
+
+The initial MVP target includes:
+
+- user registration
+- user login
+- coworking spaces
+- basic booking functionality
+
+---
+
+## Code Quality Principles
+
+The project aims to follow these principles:
+
+- separation of concerns
+- reusable components
+- centralized authentication logic
+- shared frontend/backend schemas
+- backend as the source of truth
+- environment variables for configuration
+- no secrets committed to Git
+- small feature branches
+- small and descriptive commits
+- pull requests before integration
+- stable `main` branch
+- strict TypeScript
+- explicit API error handling
+
+---
+
+## License
+
+A license has not been selected yet.
+
+---
+
+## Status
+
+The project is currently under active development.
+
+Current milestone:
+
+```text
+Authentication foundation
+```
+
+Completed authentication flow:
+
+```text
+Register
+   ↓
+Login
+   ↓
+JWT
+   ↓
+Backend authentication middleware
+   ↓
+Frontend AuthContext
+   ↓
+Session restoration
+   ↓
+Protected React routes
+   ↓
+Dashboard
+   ↓
+Logout
+```
+
+Next milestone:
+
+```text
+Coworking domain and booking MVP
+```
