@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { useAuth } from "@/contexts/AuthContext";
 import { loginUser } from "@/services/auth.service";
 
 import { Button } from "@/components/ui/button";
@@ -13,13 +16,16 @@ import {
 } from "@/components/ui/card";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setMessage("");
@@ -31,9 +37,9 @@ export default function LoginPage() {
         password,
       });
 
-      localStorage.setItem("accessToken", result.accessToken);
+      login(result.user, result.accessToken);
 
-      setMessage("Login successful.");
+      navigate("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "INVALID_CREDENTIALS") {
@@ -56,6 +62,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Welcome back</CardTitle>
+
           <CardDescription>
             Sign in to access your coworking account.
           </CardDescription>

@@ -2,7 +2,7 @@ import { registerSchema, type RegisterInput } from "@coworking/shared";
 
 import { loginSchema, type LoginInput } from "@coworking/shared";
 
-import type { LoginResponse, RegisteredUser } from "@/types/auth";
+import type { AuthenticatedUser, LoginResponse, RegisteredUser } from "@/types/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -64,4 +64,27 @@ export async function loginUser(payload: LoginInput): Promise<LoginResponse> {
   }
 
   return response.json();
+}
+
+
+export async function getCurrentUser(
+  accessToken: string
+): Promise<AuthenticatedUser> {
+  const response = await fetch(`${API_URL}/api/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (response.status === 401) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  if (!response.ok) {
+    throw new Error("CURRENT_USER_FAILED");
+  }
+
+  const data = await response.json();
+
+  return data.user;
 }
