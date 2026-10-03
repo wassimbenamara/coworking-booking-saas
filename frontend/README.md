@@ -296,6 +296,63 @@ Protected routes become inaccessible
 
 ---
 
+# Coworking Spaces
+
+Coworking space pages are protected and only available to authenticated users.
+
+## List
+
+```text
+/coworking-spaces
+```
+
+Displays all coworking spaces.
+
+## Details
+
+```text
+/coworking-spaces/:id
+```
+
+Displays details for a selected coworking space.
+
+## Create
+
+```text
+/coworking-spaces/new
+```
+
+Allows authenticated users to create a coworking space.
+
+The creation form uses the shared Zod schema:
+
+```text
+createCoworkingSpaceSchema
+```
+
+Validation errors are displayed per field.
+
+---
+
+## Authenticated API Requests
+
+Authenticated requests are centralized through:
+
+```text
+src/lib/api.ts
+```
+
+The helper adds:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+when an access token is provided.
+
+Coworking space requests use this shared API client.
+---
+
 # API Integration
 
 Authentication requests are centralized in:
@@ -358,14 +415,18 @@ Card
 - shadcn/ui
 - Base UI
 - React Router
+- Coworking space listing page
+- Coworking space details page
+- Coworking space creation page
+- Protected coworking routes
+- Shared coworking validation
+- Field-level validation errors
+- Centralized authenticated API requests
 
 ---
 
 # Planned Features
 
-- Coworking space listing page
-- Coworking space details page
-- Coworking API integration
 - HTTP-only cookie authentication
 - Improved dashboard
 - Resource listing

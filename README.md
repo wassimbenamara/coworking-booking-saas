@@ -483,6 +483,14 @@ Missing, invalid, or expired tokens return:
 
 # Coworking Spaces
 
+All coworking space endpoints currently require authentication.
+
+Requests must include:
+
+```http
+Authorization: Bearer <access_token>
+```
+
 ## List Coworking Spaces
 
 ```http
@@ -491,23 +499,11 @@ GET /api/coworking-spaces
 
 Returns all coworking spaces.
 
-Example response:
+Possible responses:
 
-```json
-{
-  "coworkingSpaces": [
-    {
-      "id": 1,
-      "name": "WorkHub Paris",
-      "description": "Modern coworking space in central Paris",
-      "address": "10 Rue de Rivoli",
-      "city": "Paris",
-      "country": "France",
-      "createdAt": "2026-10-01T12:00:00.000Z",
-      "updatedAt": "2026-10-01T12:00:00.000Z"
-    }
-  ]
-}
+```text
+200 OK
+401 Unauthorized
 ```
 
 ---
@@ -529,6 +525,7 @@ Possible responses:
 ```text
 200 OK
 400 Bad Request
+401 Unauthorized
 404 Not Found
 ```
 
@@ -538,14 +535,6 @@ Possible responses:
 
 ```http
 POST /api/coworking-spaces
-```
-
-Requires authentication.
-
-Request header:
-
-```http
-Authorization: Bearer <access_token>
 ```
 
 Example request:
@@ -560,23 +549,6 @@ Example request:
 }
 ```
 
-Example response:
-
-```json
-{
-  "coworkingSpace": {
-    "id": 1,
-    "name": "WorkHub Paris",
-    "description": "Modern coworking space in central Paris",
-    "address": "10 Rue de Rivoli",
-    "city": "Paris",
-    "country": "France",
-    "createdAt": "2026-10-01T12:00:00.000Z",
-    "updatedAt": "2026-10-01T12:00:00.000Z"
-  }
-}
-```
-
 Possible responses:
 
 ```text
@@ -585,7 +557,6 @@ Possible responses:
 401 Unauthorized
 ```
 
----
 
 # JWT Authentication Middleware
 
@@ -696,6 +667,35 @@ Unauthenticated users are redirected to:
 /login
 ```
 
+## Coworking Spaces
+
+```text
+/coworking-spaces
+```
+
+Protected route.
+
+Displays all coworking spaces available to authenticated users.
+
+## Coworking Space Details
+
+```text
+/coworking-spaces/:id
+```
+
+Protected route.
+
+Displays details for a selected coworking space.
+
+## Create Coworking Space
+
+```text
+/coworking-spaces/new
+```
+
+Protected route.
+
+Allows authenticated users to create a new coworking space.
 ---
 
 # Protected Frontend Routes
@@ -803,6 +803,10 @@ updatedAt
 - shadcn/ui with Base UI
 - GitHub Actions CI
 - Monorepo build pipeline
+- Protected coworking space listing
+- Protected coworking space details
+- Coworking space frontend pages
+- Centralized authenticated API client
 
 ---
 
@@ -811,7 +815,6 @@ updatedAt
 - Improved authentication security using HTTP-only cookies
 - Role-based authorization
 - User roles
-- Coworking space frontend
 - Coworking space update and deletion
 - Coworking resource management
 - Desks and meeting rooms
