@@ -80,24 +80,28 @@ VITE_
 
 ## Shared Package
 
-Shared TypeScript types and validation schemas are provided by:
+Shared TypeScript types and Zod validation schemas are provided by:
 
 ```text
 @coworking/shared
 ```
 
-Authentication example:
+Current shared frontend schemas include:
+
+- authentication
+- coworking spaces
+- coworking resources
+
+Example:
 
 ```ts
 import {
   loginSchema,
   registerSchema,
-  type LoginInput,
-  type RegisterInput,
+  createCoworkingSpaceSchema,
+  createCoworkingResourceSchema,
 } from "@coworking/shared";
 ```
-
-The shared package also contains schemas for upcoming domain features such as coworking spaces.
 
 The backend remains the authoritative validation layer.
 
@@ -115,16 +119,27 @@ src/
 ├── contexts/
 │   └── AuthContext.tsx
 │
+├── lib/
+│   └── api.ts
+│
 ├── pages/
+│   ├── CoworkingSpaceDetailsPage.tsx
+│   ├── CoworkingSpacesPage.tsx
+│   ├── CreateCoworkingResourcePage.tsx
+│   ├── CreateCoworkingSpacePage.tsx
 │   ├── DashboardPage.tsx
 │   ├── LoginPage.tsx
 │   └── RegisterPage.tsx
 │
 ├── services/
-│   └── auth.service.ts
+│   ├── auth.service.ts
+│   ├── coworking-resource.service.ts
+│   └── coworking-space.service.ts
 │
 ├── types/
-│   └── auth.ts
+│   ├── auth.ts
+│   ├── coworking-resource.ts
+│   └── coworking-space.ts
 │
 ├── App.tsx
 ├── index.css
@@ -141,9 +156,9 @@ src/
 /login
 ```
 
-Allows existing users to authenticate.
+Allows users to authenticate.
 
-Successful authentication redirects to:
+Successful login redirects to:
 
 ```text
 /dashboard
@@ -167,19 +182,68 @@ Allows new users to create an account.
 /dashboard
 ```
 
-Protected route available only to authenticated users.
+Protected route.
 
-Unauthenticated users are redirected to:
+---
+
+## Coworking Spaces
 
 ```text
-/login
+/coworking-spaces
 ```
+
+Protected route.
+
+Displays coworking spaces available to authenticated users.
+
+---
+
+## Coworking Space Details
+
+```text
+/coworking-spaces/:id
+```
+
+Protected route.
+
+Displays:
+
+- coworking space name
+- description
+- address
+- city
+- country
+- associated resources
+
+---
+
+## Create Coworking Space
+
+```text
+/coworking-spaces/new
+```
+
+Protected route.
+
+Allows an authenticated user to create a coworking space.
+
+---
+
+## Create Coworking Resource
+
+```text
+/coworking-spaces/:id/resources/new
+```
+
+Protected route.
+
+Allows an authenticated user to add a resource to a coworking space.
 
 ---
 
 # Authentication
 
-The frontend uses an `AuthContext` to centralize authentication state.
+The frontend uses `AuthContext` to centralize authentication state.
 
 It manages:
 
@@ -190,7 +254,7 @@ It manages:
 - authentication loading state
 - session restoration
 
-Authentication logic is centralized instead of accessing browser storage directly from multiple components.
+Authentication state is not read directly from browser storage throughout the component tree.
 
 ---
 
@@ -203,24 +267,18 @@ Client-side validation
     ↓
 POST /api/auth/login
     ↓
-Receive user + JWT access token
+Receive user + JWT
     ↓
 AuthContext.login(...)
     ↓
-Store authentication state
-    ↓
 Redirect to /dashboard
 ```
-
-Invalid credentials remain on the login page and display an error message.
 
 ---
 
 # Session Restoration
 
-On application startup, the frontend checks for an existing access token.
-
-If one exists, the frontend calls:
+On application startup, if an access token exists, the frontend calls:
 
 ```http
 GET /api/auth/me
@@ -231,145 +289,313 @@ Flow:
 ```text
 Application starts
     ↓
-Stored access token?
-    ↓
-Yes
+Stored token?
     ↓
 GET /api/auth/me
     ↓
-Valid token?
-    ├── Yes → restore authenticated user
-    └── No  → clear authentication state
+Valid?
+    ├── Yes → restore user
+    └── No  → clear auth state
 ```
-
-This means refreshing the browser does not automatically log out a user with a valid session.
-
-The backend remains the source of truth for authentication.
 
 ---
 
 # Protected Routes
 
-Protected routes are handled by:
+Protected routes use:
 
 ```text
 src/components/auth/ProtectedRoute.tsx
 ```
 
-`ProtectedRoute` verifies authentication state before rendering private pages.
-
 Flow:
 
 ```text
-Protected page requested
+Protected route requested
     ↓
-Authentication loading?
+Auth state loading?
     ↓
 Authenticated user?
     ├── Yes → render page
     └── No  → redirect to /login
 ```
 
-Example:
+Protected application routes currently include:
 
-```tsx
-<Route element={<ProtectedRoute />}>
-  <Route path="/dashboard" element={<DashboardPage />} />
-</Route>
+```text
+/dashboard
+/coworking-spaces
+/coworking-spaces/:id
+/coworking-spaces/new
+/coworking-spaces/:id/resources/new
 ```
 
 ---
 
-# Logout
+# Authenticated API Client
 
-The dashboard currently provides a logout action.
-
-Flow:
+Authenticated HTTP requests are centralized in:
 
 ```text
-Remove stored access token
-    ↓
-Clear authenticated user
-    ↓
-Protected routes become inaccessible
+src/lib/api.ts
 ```
+
+Services pass relative API paths such as:
+
+```text
+/api/coworking-spaces
+/api/coworking-spaces/1
+/api/coworking-resources
+```
+
+The API helper:
+
+- prepends `VITE_API_URL`
+- adds the JWT authorization header when provided
+- centralizes common HTTP configuration
+
+Example flow:
+
+```text
+React page
+    ↓
+service
+    ↓
+apiFetch()
+    ↓
+backend API
+```
+
+This avoids duplicating backend URLs and authorization headers throughout the application.
 
 ---
 
 # Coworking Spaces
 
-Coworking space pages are protected and only available to authenticated users.
+## Listing
 
-## List
+The coworking space listing page loads:
 
-```text
-/coworking-spaces
+```http
+GET /api/coworking-spaces
 ```
 
-Displays all coworking spaces.
+The page handles:
 
-## Details
+- loading state
+- API errors
+- empty state
+- coworking cards
+
+Selecting a coworking space navigates to:
 
 ```text
 /coworking-spaces/:id
 ```
 
-Displays details for a selected coworking space.
+---
 
-## Create
+## Details
 
-```text
-/coworking-spaces/new
+The details page loads:
+
+```http
+GET /api/coworking-spaces/:id
 ```
 
-Allows authenticated users to create a coworking space.
+It also loads the resources belonging to the coworking space:
 
-The creation form uses the shared Zod schema:
+```http
+GET /api/coworking-spaces/:coworkingSpaceId/resources
+```
+
+Coworking and resource loading states are kept separate so that a resource loading failure does not prevent the coworking details from being displayed.
+
+---
+
+## Create Coworking Space
+
+The creation form uses:
 
 ```text
 createCoworkingSpaceSchema
+```
+
+from:
+
+```text
+@coworking/shared
+```
+
+Flow:
+
+```text
+Form
+    ↓
+Shared Zod validation
+    ↓
+POST /api/coworking-spaces
+    ↓
+Created coworking space
+    ↓
+Redirect to details page
 ```
 
 Validation errors are displayed per field.
 
 ---
 
-## Authenticated API Requests
+# Coworking Resources
 
-Authenticated requests are centralized through:
+Resources represent bookable entities inside a coworking space.
+
+Supported types:
 
 ```text
-src/lib/api.ts
+DESK
+MEETING_ROOM
 ```
 
-The helper adds:
+Each resource currently contains:
 
-```http
-Authorization: Bearer <access_token>
+```text
+id
+name
+type
+capacity
+coworkingSpaceId
+createdAt
+updatedAt
 ```
 
-when an access token is provided.
+---
 
-Coworking space requests use this shared API client.
+## Resource Listing
+
+Resources are displayed directly inside:
+
+```text
+/coworking-spaces/:id
+```
+
+Example:
+
+```text
+Coworking Space
+    ↓
+Resources
+    ├── Desk A1
+    ├── Desk A2
+    └── Meeting Room Alpha
+```
+
+Each resource card displays:
+
+- name
+- type
+- capacity
+
+The page supports:
+
+- resource loading state
+- resource error state
+- empty resource state
+
+---
+
+## Create Coworking Resource
+
+The creation route is:
+
+```text
+/coworking-spaces/:id/resources/new
+```
+
+The form contains:
+
+```text
+name
+type
+capacity
+```
+
+The `coworkingSpaceId` is automatically derived from the route parameter and is not manually entered.
+
+Supported types:
+
+```text
+DESK
+MEETING_ROOM
+```
+
+The form uses:
+
+```text
+createCoworkingResourceSchema
+```
+
+from the shared package.
+
+Flow:
+
+```text
+Coworking details
+    ↓
+Add resource
+    ↓
+Create resource form
+    ↓
+Shared Zod validation
+    ↓
+POST /api/coworking-resources
+    ↓
+Redirect to coworking details
+```
+
+Validation errors are displayed next to the relevant field.
+
+---
+
+# Error Handling
+
+Forms distinguish between:
+
+- field validation errors
+- authentication errors
+- backend API errors
+
+Field validation messages use the shared Zod schemas.
+
+Examples:
+
+```text
+Name must contain at least 2 characters
+Capacity must be at least 1
+```
+
+Errors are displayed in red near the relevant field.
+
 ---
 
 # API Integration
 
-Authentication requests are centralized in:
-
-```text
-src/services/auth.service.ts
-```
-
-Current frontend API calls:
+Current frontend API calls include:
 
 ```http
 POST /api/auth/register
 POST /api/auth/login
 GET /api/auth/me
+
+GET /api/coworking-spaces
+GET /api/coworking-spaces/:id
+POST /api/coworking-spaces
+
+GET /api/coworking-spaces/:coworkingSpaceId/resources
+GET /api/coworking-resources/:id
+POST /api/coworking-resources
 ```
 
-Coworking space API integration will be added in the next frontend feature.
+Authentication-protected requests include the JWT access token.
 
 ---
 
@@ -381,7 +607,7 @@ The frontend uses:
 - shadcn/ui
 - Base UI
 
-Reusable components are located in:
+Reusable UI components live in:
 
 ```text
 src/components/ui
@@ -396,6 +622,14 @@ Label
 Card
 ```
 
+For links that should look like buttons, the frontend reuses:
+
+```ts
+buttonVariants(...)
+```
+
+instead of duplicating button styles.
+
 ---
 
 # Current Features
@@ -404,42 +638,46 @@ Card
 - Registration API integration
 - User login page
 - Login API integration
-- Shared authentication validation
 - React authentication context
-- Centralized authentication state
 - Session restoration
 - Protected React routes
-- Authenticated dashboard
 - Logout flow
+- Centralized authenticated API client
+- Shared Zod validation
+- Coworking space listing page
+- Coworking space details page
+- Coworking space creation page
+- Coworking resource listing inside coworking details
+- Coworking resource creation page
+- `DESK` resource support
+- `MEETING_ROOM` resource support
+- Field-level form validation
+- Loading states
+- API error states
+- Empty states
 - Tailwind CSS
 - shadcn/ui
 - Base UI
 - React Router
-- Coworking space listing page
-- Coworking space details page
-- Coworking space creation page
-- Protected coworking routes
-- Shared coworking validation
-- Field-level validation errors
-- Centralized authenticated API requests
 
 ---
 
 # Planned Features
 
-- HTTP-only cookie authentication
-- Improved dashboard
-- Resource listing
-- Desk and meeting room interfaces
-- Availability UI
+- Coworking resource details page
+- Resource availability UI
 - Booking creation
 - Booking history
 - Booking cancellation
+- Booking conflict feedback
+- Coworking space editing
+- Coworking resource editing
 - Role-based UI
 - Admin UI
-- Better loading states
+- Improved dashboard
 - Toast notifications
-- Improved form validation UX
+- Better loading indicators
+- HTTP-only cookie authentication
 - Frontend tests
 
 ---
@@ -448,9 +686,9 @@ Card
 
 The current MVP stores the JWT access token in browser `localStorage`.
 
-This is suitable for the current development stage, but it is not the final production authentication architecture.
+This is suitable for the current development stage, but it is not intended to be the final production authentication architecture.
 
-A future improvement will migrate authentication to HTTP-only cookies to reduce direct JavaScript access to authentication tokens.
+A future improvement will migrate authentication toward HTTP-only cookies.
 
 ---
 
@@ -468,7 +706,7 @@ Default URL:
 http://localhost:5173
 ```
 
-The backend should also be running:
+Start the backend separately:
 
 ```bash
 npm run dev --workspace=backend
@@ -478,7 +716,7 @@ npm run dev --workspace=backend
 
 # Build
 
-Build the frontend only:
+Build the frontend:
 
 ```bash
 npm run build --workspace=frontend
@@ -492,24 +730,26 @@ npm run build
 
 ---
 
-# Current Authentication Flow
+# Current Application Flow
 
 ```text
 Register
     ↓
 Login
     ↓
-JWT access token
+JWT
     ↓
 AuthContext
     ↓
-Session restoration
+Protected routes
     ↓
-ProtectedRoute
+Coworking spaces
     ↓
-Dashboard
+Coworking details
     ↓
-Logout
+Resources
+    ↓
+Create resource
 ```
 
 ---
@@ -521,11 +761,21 @@ Logout
 Current frontend milestone:
 
 ```text
-Authentication foundation complete
+Coworking resources UI
+```
+
+Completed:
+
+```text
+Authentication UI
+    ↓
+Coworking spaces UI
+    ↓
+Coworking resources UI
 ```
 
 Next:
 
 ```text
-Coworking spaces UI
+Availability and booking UI
 ```

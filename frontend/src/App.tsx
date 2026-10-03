@@ -7,6 +7,7 @@ import RegisterPage from "@/pages/RegisterPage";
 import CoworkingSpacesPage from "./pages/CoworkingSpacesPage";
 import CoworkingSpaceDetailsPage from "./pages/CoworkingSpaceDetailsPage";
 import CreateCoworkingSpacePage from "./pages/CreateCoworkingSpacePage";
+import CreateCoworkingResourcePage from "./pages/CreateCoworkingResourcePage";
 
 function App() {
   return (
@@ -26,6 +27,10 @@ function App() {
         <Route
           path="/coworking-spaces/new"
           element={<CreateCoworkingSpacePage />}
+        />
+        <Route
+          path="/coworking-spaces/:id/resources/new"
+          element={<CreateCoworkingResourcePage />}
         />
       </Route>
     </Routes>

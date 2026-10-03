@@ -72,9 +72,23 @@ coworking-booking-saas/
 │       │   └── ui/
 │       ├── contexts/
 │       ├── lib/
+│       │   └── api.ts
 │       ├── pages/
+│       │   ├── CoworkingSpaceDetailsPage.tsx
+│       │   ├── CoworkingSpacesPage.tsx
+│       │   ├── CreateCoworkingResourcePage.tsx
+│       │   ├── CreateCoworkingSpacePage.tsx
+│       │   ├── DashboardPage.tsx
+│       │   ├── LoginPage.tsx
+│       │   └── RegisterPage.tsx
 │       ├── services/
+│       │   ├── auth.service.ts
+│       │   ├── coworking-resource.service.ts
+│       │   └── coworking-space.service.ts
 │       └── types/
+│           ├── auth.ts
+│           ├── coworking-resource.ts
+│           └── coworking-space.ts
 │
 ├── packages/
 │   └── shared/
@@ -381,17 +395,6 @@ Example response:
 POST /api/auth/register
 ```
 
-Example request:
-
-```json
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
-
 Possible responses:
 
 ```text
@@ -400,23 +403,12 @@ Possible responses:
 409 Conflict
 ```
 
-Passwords are hashed using Argon2.
-
 ---
 
 ## Login
 
 ```http
 POST /api/auth/login
-```
-
-Example request:
-
-```json
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
 ```
 
 Example response:
@@ -441,7 +433,7 @@ Possible responses:
 401 Unauthorized
 ```
 
-The API deliberately returns the same error for an unknown email and an incorrect password to reduce account enumeration risks.
+The same authentication error is returned for an unknown email and an incorrect password to reduce account enumeration risks.
 
 ---
 
@@ -451,28 +443,16 @@ The API deliberately returns the same error for an unknown email and an incorrec
 GET /api/auth/me
 ```
 
-Requires a valid JWT.
-
-Request header:
+Requires:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
-Example response:
-
-```json
-{
-  "user": {
-    "id": 1,
-    "email": "john@example.com"
-  }
-}
-```
-
-Possible response:
+Possible responses:
 
 ```text
+200 OK
 401 Unauthorized
 ```
 
@@ -552,14 +532,14 @@ Possible responses:
 
 Coworking resources represent reservable entities inside a coworking space.
 
-Current resource types:
+Supported resource types:
 
 ```text
 DESK
 MEETING_ROOM
 ```
 
-All coworking resource endpoints currently require authentication.
+All coworking resource endpoints require authentication.
 
 Request header:
 
@@ -589,7 +569,7 @@ Possible responses:
 
 ---
 
-## Get Resource by ID
+## Get Coworking Resource by ID
 
 ```http
 GET /api/coworking-resources/:id
@@ -612,7 +592,7 @@ Possible responses:
 POST /api/coworking-resources
 ```
 
-Example request:
+Desk example:
 
 ```json
 {
@@ -651,8 +631,6 @@ A `404 Not Found` is returned when the referenced coworking space does not exist
 
 Protected backend routes use JWT authentication middleware.
 
-Flow:
-
 ```text
 HTTP request
     ↓
@@ -667,9 +645,9 @@ req.user
 protected controller
 ```
 
-Authentication and authorization are intentionally separated.
+Authentication and authorization remain separate concerns.
 
-Role-based authorization will be implemented separately.
+Role-based authorization will be implemented later.
 
 ---
 
@@ -692,11 +670,13 @@ Authenticated API calls are centralized through:
 frontend/src/lib/api.ts
 ```
 
+The API helper accepts relative API paths and adds the configured backend URL and JWT authorization header when required.
+
 ---
 
 ## Session Restoration
 
-On application startup, the frontend restores the user session using:
+On application startup, the frontend restores the current user using:
 
 ```http
 GET /api/auth/me
@@ -746,7 +726,7 @@ Protected route.
 /coworking-spaces
 ```
 
-Protected route.
+Protected route displaying available coworking spaces.
 
 ## Coworking Space Details
 
@@ -754,7 +734,12 @@ Protected route.
 /coworking-spaces/:id
 ```
 
-Protected route.
+Protected route displaying:
+
+- coworking space information
+- coworking resources
+- resource type
+- resource capacity
 
 ## Create Coworking Space
 
@@ -763,6 +748,66 @@ Protected route.
 ```
 
 Protected route.
+
+## Create Coworking Resource
+
+```text
+/coworking-spaces/:id/resources/new
+```
+
+Protected route allowing an authenticated user to add a desk or meeting room to the selected coworking space.
+
+---
+
+# Coworking Resources Frontend
+
+Resources are displayed directly inside the coworking space details page.
+
+Example:
+
+```text
+Coworking Space
+    ↓
+Resources
+    ├── Desk A1
+    ├── Desk A2
+    └── Meeting Room Alpha
+```
+
+Each resource currently displays:
+
+- name
+- type
+- capacity
+
+Supported types:
+
+```text
+DESK
+MEETING_ROOM
+```
+
+---
+
+## Create Resource Flow
+
+```text
+/coworking-spaces/:id
+    ↓
+Add resource
+    ↓
+/coworking-spaces/:id/resources/new
+    ↓
+Shared Zod validation
+    ↓
+POST /api/coworking-resources
+    ↓
+Redirect to /coworking-spaces/:id
+```
+
+The `coworkingSpaceId` is derived from the URL and is not manually entered by the user.
+
+Validation errors are displayed at field level.
 
 ---
 
@@ -780,8 +825,6 @@ createdAt
 updatedAt
 ```
 
----
-
 ## CoworkingSpace
 
 ```text
@@ -796,8 +839,6 @@ updatedAt
 resources[]
 ```
 
----
-
 ## CoworkingResource
 
 ```text
@@ -810,16 +851,22 @@ createdAt
 updatedAt
 ```
 
-Resource type:
+Types:
 
 ```text
 DESK
 MEETING_ROOM
 ```
 
-Each resource belongs to one coworking space.
+Relationship:
 
-A coworking space can contain multiple resources.
+```text
+CoworkingSpace
+    1
+    ↓
+    *
+CoworkingResource
+```
 
 ---
 
@@ -833,8 +880,8 @@ A coworking space can contain multiple resources.
 - Prisma ORM
 - Shared TypeScript and Zod package
 - Shared authentication schemas
-- Shared coworking space validation schema
-- Shared coworking resource validation schema
+- Shared coworking space validation
+- Shared coworking resource validation
 - User registration API
 - User registration UI
 - User login API
@@ -842,20 +889,21 @@ A coworking space can contain multiple resources.
 - Argon2 password hashing
 - JWT access token generation
 - JWT authentication middleware
-- Protected backend routes
 - React authentication context
 - Session restoration
 - Protected frontend routes
 - Centralized authenticated API client
 - Coworking space data model
-- Protected coworking space listing
-- Protected coworking space details
-- Authenticated coworking space creation
-- Coworking space frontend pages
+- Protected coworking space API
+- Coworking space listing page
+- Coworking space details page
+- Coworking space creation page
 - Coworking resource data model
-- Coworking resource types
-- Authenticated coworking resource listing
-- Authenticated coworking resource details
+- `DESK` and `MEETING_ROOM` resource types
+- Protected coworking resource API
+- Coworking resources displayed in coworking details
+- Coworking resource creation page
+- Field-level resource validation errors
 - Authenticated coworking resource creation
 - GitHub Actions CI
 - Monorepo build pipeline
@@ -864,7 +912,7 @@ A coworking space can contain multiple resources.
 
 # Planned Features
 
-- Coworking resources frontend
+- Coworking resource details UI
 - Coworking space update and deletion
 - Coworking resource update and deletion
 - Role-based authorization
@@ -881,7 +929,8 @@ A coworking space can contain multiple resources.
 - Frontend tests
 - CI test pipeline
 - Improved error handling
-- Form validation UX improvements
+- Improved loading states
+- Toast notifications
 - HTTP-only cookie authentication
 - Deployment
 
@@ -891,7 +940,7 @@ A coworking space can contain multiple resources.
 
 The current MVP stores the JWT access token in browser `localStorage`.
 
-This is acceptable for the current development stage, but it is not intended to be the final production authentication architecture.
+This is suitable for the current development stage, but it is not intended to be the final production authentication architecture.
 
 A future improvement will migrate authentication toward HTTP-only cookies.
 
@@ -942,21 +991,13 @@ Pull Request
 main
 ```
 
-## Main Branch
-
-```text
-main
-```
+## `main`
 
 Stable branch.
 
-## Integration Branch
+## `develop`
 
-```text
-develop
-```
-
-Completed features are merged here first.
+Integration branch for completed features.
 
 ## Feature Branches
 
@@ -970,6 +1011,7 @@ feature/frontend-auth-state
 feature/coworking-spaces
 feature/coworking-spaces-ui
 feature/coworking-resources
+feature/coworking-resources-ui
 ```
 
 Other prefixes:
@@ -991,6 +1033,7 @@ feat: add user login
 feat: add coworking spaces API
 feat: add protected coworking spaces frontend
 feat: add coworking resources API
+feat: add coworking resources frontend
 fix: handle invalid JWT
 refactor: move schemas to shared package
 chore: update CI configuration
@@ -1026,13 +1069,15 @@ Once the first MVP is complete, `develop` will be merged into `main`.
 - separation of concerns
 - route / controller / service separation
 - shared frontend/backend schemas
-- centralized authentication logic
+- centralized authentication state
 - centralized authenticated API client
 - backend as the source of truth
 - environment-based configuration
 - no secrets committed to Git
 - strict TypeScript
+- non-deprecated APIs
 - explicit API error handling
+- field-level form validation
 - small feature branches
 - descriptive commits
 - pull requests before integration
@@ -1047,21 +1092,25 @@ Once the first MVP is complete, `develop` will be merged into `main`.
 Current milestone:
 
 ```text
-Coworking resources
+Coworking resources frontend
 ```
 
 Completed:
 
 ```text
-Authentication foundation
+Authentication
     ↓
-Coworking spaces
+Coworking spaces API
+    ↓
+Coworking spaces frontend
     ↓
 Coworking resources API
+    ↓
+Coworking resources frontend
 ```
 
-Next:
+Next milestone:
 
 ```text
-Coworking resources frontend
+Resource availability and booking
 ```
