@@ -21,13 +21,13 @@ The backend is part of an npm workspaces monorepo.
 
 ## Shared Package
 
-The backend uses the internal workspace package:
+The backend uses:
 
 ```text
 @coworking/shared
 ```
 
-The shared package contains validation schemas and TypeScript types used by both the frontend and backend.
+Shared schemas and TypeScript types are reused across the frontend and backend.
 
 Example:
 
@@ -36,9 +36,11 @@ import {
   registerSchema,
   loginSchema,
   createCoworkingSpaceSchema,
+  createCoworkingResourceSchema,
   type RegisterInput,
   type LoginInput,
   type CreateCoworkingSpaceInput,
+  type CreateCoworkingResourceInput,
 } from "@coworking/shared";
 ```
 
@@ -48,13 +50,17 @@ The backend remains the authoritative validation layer.
 
 ## Installation
 
-Dependencies are installed from the monorepo root:
+Install dependencies from the repository root:
 
 ```bash
 npm install
 ```
 
-The project uses one root `package-lock.json`.
+The monorepo uses a single root:
+
+```text
+package-lock.json
+```
 
 Do not create a separate backend lockfile.
 
@@ -77,19 +83,19 @@ JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=1h
 ```
 
-The `.env` file is ignored by Git and must not be committed.
+The `.env` file must not be committed.
 
 ---
 
 ## Development
 
-From the repository root:
+From the project root:
 
 ```bash
 npm run dev --workspace=backend
 ```
 
-The API is available by default at:
+Default API URL:
 
 ```text
 http://localhost:3000
@@ -99,13 +105,13 @@ http://localhost:3000
 
 ## Build
 
-From the repository root:
+Build the backend:
 
 ```bash
 npm run build:backend
 ```
 
-The shared package must be built before the backend when its source has changed:
+If the shared package changed:
 
 ```bash
 npm run build:shared
@@ -130,7 +136,7 @@ npm run start --workspace=backend
 
 # Prisma
 
-Prisma configuration is located in:
+Prisma configuration:
 
 ```text
 backend/prisma.config.ts
@@ -142,7 +148,7 @@ Prisma schema:
 backend/prisma/schema.prisma
 ```
 
-The recommended workflow is to run Prisma CLI commands from the backend directory.
+Run Prisma commands from the backend directory:
 
 ```bash
 cd backend
@@ -160,7 +166,7 @@ npx prisma generate
 npx prisma validate
 ```
 
-## Apply Development Migrations
+## Apply Development Migration
 
 ```bash
 npx prisma migrate dev --name <migration-name>
@@ -169,16 +175,16 @@ npx prisma migrate dev --name <migration-name>
 Example:
 
 ```bash
-npx prisma migrate dev --name add_coworking_space
+npx prisma migrate dev --name add_coworking_resources
 ```
 
-## Open Prisma Studio
+## Prisma Studio
 
 ```bash
 npx prisma studio
 ```
 
-Return to the repository root:
+Return to the project root:
 
 ```bash
 cd ..
@@ -186,7 +192,7 @@ cd ..
 
 ---
 
-# Current Endpoints
+# API Endpoints
 
 ## API Root
 
@@ -223,13 +229,13 @@ Example response:
 
 # Authentication
 
-## User Registration
+## Register
 
 ```http
 POST /api/auth/register
 ```
 
-Request body:
+Example request:
 
 ```json
 {
@@ -248,17 +254,15 @@ Possible responses:
 409 Conflict
 ```
 
-Passwords are hashed with Argon2 before being stored.
-
 ---
 
-## User Login
+## Login
 
 ```http
 POST /api/auth/login
 ```
 
-Request body:
+Example request:
 
 ```json
 {
@@ -267,11 +271,7 @@ Request body:
 }
 ```
 
-Successful response:
-
-```http
-200 OK
-```
+Example response:
 
 ```json
 {
@@ -281,31 +281,19 @@ Successful response:
     "lastName": "Ben Amara",
     "email": "wassim@example.com"
   },
-  "accessToken": "jwt-token"
+  "accessToken": "<jwt-token>"
 }
 ```
 
-Invalid request data:
+Possible responses:
 
 ```text
+200 OK
 400 Bad Request
-```
-
-Invalid email or password:
-
-```text
 401 Unauthorized
 ```
 
-Example:
-
-```json
-{
-  "message": "Invalid email or password"
-}
-```
-
-The same error is returned for an unknown email and an incorrect password to avoid exposing whether an account exists.
+The same credential error is returned for an unknown email and an incorrect password.
 
 ---
 
@@ -315,32 +303,16 @@ The same error is returned for an unknown email and an incorrect password to avo
 GET /api/auth/me
 ```
 
-Requires a valid JWT access token.
-
-Request header:
+Requires:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
-Successful response:
-
-```http
-200 OK
-```
-
-```json
-{
-  "user": {
-    "id": 1,
-    "email": "wassim@example.com"
-  }
-}
-```
-
-Missing, invalid, or expired token:
+Possible responses:
 
 ```text
+200 OK
 401 Unauthorized
 ```
 
@@ -348,9 +320,15 @@ Missing, invalid, or expired token:
 
 # Coworking Spaces
 
-All coworking space routes are protected by the JWT authentication middleware.
+All coworking space routes are protected.
 
-Requests must include:
+The router applies:
+
+```ts
+router.use(authenticate);
+```
+
+Requests require:
 
 ```http
 Authorization: Bearer <access_token>
@@ -369,7 +347,9 @@ Possible responses:
 401 Unauthorized
 ```
 
-## Get Coworking Space by ID
+---
+
+## Get Coworking Space
 
 ```http
 GET /api/coworking-spaces/:id
@@ -384,10 +364,24 @@ Possible responses:
 404 Not Found
 ```
 
+---
+
 ## Create Coworking Space
 
 ```http
 POST /api/coworking-spaces
+```
+
+Example request:
+
+```json
+{
+  "name": "WorkHub Paris",
+  "description": "Modern coworking space",
+  "address": "10 Rue de Rivoli",
+  "city": "Paris",
+  "country": "France"
+}
 ```
 
 Possible responses:
@@ -398,24 +392,155 @@ Possible responses:
 401 Unauthorized
 ```
 
+---
+
+# Coworking Resources
+
+Coworking resources are reservable entities that belong to a coworking space.
+
+Supported resource types:
+
+```text
+DESK
+MEETING_ROOM
+```
+
+All resource routes are protected by JWT authentication.
+
+Requests require:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+## List Resources for a Coworking Space
+
+```http
+GET /api/coworking-spaces/:coworkingSpaceId/resources
+```
+
+Example:
+
+```http
+GET /api/coworking-spaces/1/resources
+```
+
+Successful response:
+
+```http
+200 OK
+```
+
+Example response:
+
+```json
+{
+  "resources": [
+    {
+      "id": 1,
+      "name": "Desk A1",
+      "type": "DESK",
+      "capacity": 1,
+      "coworkingSpaceId": 1,
+      "createdAt": "2026-10-03T12:00:00.000Z",
+      "updatedAt": "2026-10-03T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+Possible responses:
+
+```text
+200 OK
+400 Bad Request
+401 Unauthorized
+```
+
+---
+
+## Get Coworking Resource by ID
+
+```http
+GET /api/coworking-resources/:id
+```
+
+Possible responses:
+
+```text
+200 OK
+400 Bad Request
+401 Unauthorized
+404 Not Found
+```
+
+---
+
+## Create Coworking Resource
+
+```http
+POST /api/coworking-resources
+```
+
+Desk example:
+
+```json
+{
+  "name": "Desk A1",
+  "type": "DESK",
+  "capacity": 1,
+  "coworkingSpaceId": 1
+}
+```
+
+Meeting room example:
+
+```json
+{
+  "name": "Meeting Room Alpha",
+  "type": "MEETING_ROOM",
+  "capacity": 8,
+  "coworkingSpaceId": 1
+}
+```
+
+Successful response:
+
+```http
+201 Created
+```
+
+Possible responses:
+
+```text
+201 Created
+400 Bad Request
+401 Unauthorized
+404 Not Found
+```
+
+`404 Not Found` is returned when the referenced coworking space does not exist.
+
+---
+
 # Authentication Architecture
 
 Passwords are hashed using Argon2.
 
-On successful login, the API generates a JWT access token.
+Successful login generates a JWT access token.
 
-The token currently contains:
+Current JWT claims:
 
 ```text
 sub
 email
 ```
 
-The `sub` claim contains the user's ID.
+`sub` contains the user ID.
 
-Sensitive information such as passwords is never stored inside the JWT.
-
-Protected routes use the authentication middleware.
+Passwords and other sensitive data are never stored in JWT payloads.
 
 Flow:
 
@@ -433,9 +558,7 @@ req.user
 protected controller
 ```
 
-Authentication and authorization remain separate concerns.
-
-Role-based authorization will be added later.
+Authentication and authorization are treated as separate concerns.
 
 ---
 
@@ -443,7 +566,7 @@ Role-based authorization will be added later.
 
 Request validation uses Zod.
 
-Schemas shared with the frontend live in:
+Shared schemas live in:
 
 ```text
 packages/shared/src/schemas/
@@ -454,15 +577,16 @@ Current schemas include:
 ```text
 auth.schema.ts
 coworking-space.schema.ts
+coworking-resource.schema.ts
 ```
 
-Example:
+Current code uses non-deprecated Zod error APIs such as:
 
 ```ts
-const validation = createCoworkingSpaceSchema.safeParse(req.body);
+z.flattenError(validation.error)
 ```
 
-The backend remains the final source of truth for request validation.
+The backend remains the final source of truth for validation.
 
 ---
 
@@ -495,9 +619,40 @@ city
 country
 createdAt
 updatedAt
+resources[]
 ```
 
-`description` is optional / nullable.
+---
+
+## CoworkingResource
+
+```text
+id
+name
+type
+capacity
+coworkingSpaceId
+createdAt
+updatedAt
+```
+
+Type:
+
+```text
+DESK
+MEETING_ROOM
+```
+
+Relation:
+
+```text
+CoworkingSpace 1
+      ↓
+      *
+CoworkingResource
+```
+
+Deleting a coworking space cascades to its resources.
 
 ---
 
@@ -515,6 +670,7 @@ backend/
 │   │
 │   ├── controllers/
 │   │   ├── auth.controller.ts
+│   │   ├── coworking-resource.controller.ts
 │   │   └── coworking-space.controller.ts
 │   │
 │   ├── generated/
@@ -528,10 +684,12 @@ backend/
 │   │
 │   ├── routes/
 │   │   ├── auth.routes.ts
+│   │   ├── coworking-resource.routes.ts
 │   │   └── coworking-space.routes.ts
 │   │
 │   ├── services/
 │   │   ├── auth.service.ts
+│   │   ├── coworking-resource.service.ts
 │   │   └── coworking-space.service.ts
 │   │
 │   ├── types/
@@ -550,6 +708,7 @@ Shared schemas:
 ```text
 packages/shared/src/schemas/
 ├── auth.schema.ts
+├── coworking-resource.schema.ts
 └── coworking-space.schema.ts
 ```
 
@@ -557,11 +716,9 @@ packages/shared/src/schemas/
 
 # Architecture
 
-Coworking features follow a separation of concerns:
+Backend features follow:
 
 ```text
-HTTP Request
-    ↓
 Route
     ↓
 Controller
@@ -577,23 +734,17 @@ Responsibilities:
 
 ```text
 Route
-→ endpoint declaration and middleware
+→ HTTP endpoint and middleware declaration
 
 Controller
-→ HTTP request / response handling
+→ HTTP request/response handling and validation
 
 Service
-→ business and persistence logic
+→ domain and persistence operations
 
 Prisma
 → database access
 ```
-
-The coworking router applies authentication to all routes:
-```text
-router.use(authenticate);
-```
-
 
 ---
 
@@ -601,42 +752,44 @@ router.use(authenticate);
 
 - Express REST API
 - TypeScript configuration
-- Health check endpoint
 - PostgreSQL database
 - Prisma ORM
 - Database migrations
-- User database model
-- CoworkingSpace database model
+- Shared Zod validation
 - User registration
 - User login
-- Shared request validation with Zod
-- Shared coworking space validation
-- Password hashing with Argon2
-- Duplicate email prevention
-- JWT access token generation
-- Invalid credentials protection
+- Argon2 password hashing
+- JWT access tokens
 - JWT authentication middleware
-- Protected routes
-- Authenticated user endpoint
-- Protected coworking space routes
-- Authenticated coworking space listing
-- Authenticated coworking space details
+- Protected backend routes
+- Authenticated current-user endpoint
+- CoworkingSpace database model
+- Protected coworking space listing
+- Protected coworking space details
 - Authenticated coworking space creation
+- CoworkingResource database model
+- Coworking resource enum
+- Coworking resource listing
+- Coworking resource details
+- Authenticated coworking resource creation
+- Parent coworking existence validation
 
 ---
 
 # Planned Features
 
+- Coworking resource frontend
 - Coworking space update
 - Coworking space deletion
+- Coworking resource update
+- Coworking resource deletion
 - Role management
 - Role-based authorization
-- Room and desk management
 - Resource availability
 - Booking system
 - Booking conflict prevention
 - Swagger / OpenAPI documentation
-- Automated backend tests
+- Backend tests with Vitest and Supertest
 
 ---
 
@@ -647,11 +800,11 @@ router.use(authenticate);
 Current backend milestone:
 
 ```text
-Coworking spaces API
+Coworking resources API
 ```
 
 Next:
 
 ```text
-Coworking resources and booking domain
+Coworking resources frontend
 ```

@@ -31,4 +31,22 @@ model CoworkingSpace {
   country     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  resources CoworkingResource[]
+}
+
+enum CoworkingResourceType {
+  DESK
+  MEETING_ROOM
+}
+
+model CoworkingResource {
+  id               Int                   @id @default(autoincrement())
+  name             String
+  type             CoworkingResourceType
+  capacity         Int                   @default(1)
+  coworkingSpaceId Int
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  coworkingSpace CoworkingSpace @relation(    fields: [coworkingSpaceId],    references: [id],    onDelete: Cascade  )
 }

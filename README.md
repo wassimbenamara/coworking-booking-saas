@@ -1,6 +1,6 @@
 # Coworking Booking SaaS
 
-A full-stack SaaS application for managing coworking spaces, users, resources, availability, and bookings.
+A full-stack SaaS application for managing coworking spaces, resources, availability, and bookings.
 
 The project is built as an npm workspaces monorepo with a React frontend, Node.js backend, PostgreSQL database, Prisma ORM, and shared TypeScript validation schemas.
 
@@ -69,14 +69,10 @@ coworking-booking-saas/
 │   └── src/
 │       ├── components/
 │       │   ├── auth/
-│       │   │   └── ProtectedRoute.tsx
 │       │   └── ui/
 │       ├── contexts/
-│       │   └── AuthContext.tsx
+│       ├── lib/
 │       ├── pages/
-│       │   ├── DashboardPage.tsx
-│       │   ├── LoginPage.tsx
-│       │   └── RegisterPage.tsx
 │       ├── services/
 │       └── types/
 │
@@ -85,6 +81,7 @@ coworking-booking-saas/
 │       └── src/
 │           ├── schemas/
 │           │   ├── auth.schema.ts
+│           │   ├── coworking-resource.schema.ts
 │           │   └── coworking-space.schema.ts
 │           └── index.ts
 │
@@ -144,9 +141,11 @@ import {
   loginSchema,
   registerSchema,
   createCoworkingSpaceSchema,
+  createCoworkingResourceSchema,
   type LoginInput,
   type RegisterInput,
   type CreateCoworkingSpaceInput,
+  type CreateCoworkingResourceInput,
 } from "@coworking/shared";
 ```
 
@@ -186,7 +185,7 @@ JWT_EXPIRES_IN=1h
 VITE_API_URL=http://localhost:3000
 ```
 
-Only environment variables prefixed with `VITE_` are exposed to the frontend by Vite.
+Only variables prefixed with `VITE_` are exposed to the frontend by Vite.
 
 ---
 
@@ -249,13 +248,13 @@ docker compose down
 
 Prisma is configured inside the backend workspace.
 
-The recommended workflow is to run Prisma commands from:
+Run Prisma CLI commands from:
 
 ```text
 backend/
 ```
 
-Enter the backend workspace:
+Enter the backend directory:
 
 ```bash
 cd backend
@@ -285,7 +284,7 @@ Open Prisma Studio:
 npx prisma studio
 ```
 
-Return to the repository root:
+Return to the project root:
 
 ```bash
 cd ..
@@ -296,8 +295,6 @@ cd ..
 ## Development
 
 ### Backend
-
-From the repository root:
 
 ```bash
 npm run dev --workspace=backend
@@ -403,7 +400,7 @@ Possible responses:
 409 Conflict
 ```
 
-Passwords are hashed using Argon2 before being stored.
+Passwords are hashed using Argon2.
 
 ---
 
@@ -454,7 +451,7 @@ The API deliberately returns the same error for an unknown email and an incorrec
 GET /api/auth/me
 ```
 
-Requires a valid JWT access token.
+Requires a valid JWT.
 
 Request header:
 
@@ -473,7 +470,7 @@ Example response:
 }
 ```
 
-Missing, invalid, or expired tokens return:
+Possible response:
 
 ```text
 401 Unauthorized
@@ -485,7 +482,7 @@ Missing, invalid, or expired tokens return:
 
 All coworking space endpoints currently require authentication.
 
-Requests must include:
+Request header:
 
 ```http
 Authorization: Bearer <access_token>
@@ -496,8 +493,6 @@ Authorization: Bearer <access_token>
 ```http
 GET /api/coworking-spaces
 ```
-
-Returns all coworking spaces.
 
 Possible responses:
 
@@ -512,12 +507,6 @@ Possible responses:
 
 ```http
 GET /api/coworking-spaces/:id
-```
-
-Example:
-
-```http
-GET /api/coworking-spaces/1
 ```
 
 Possible responses:
@@ -557,30 +546,128 @@ Possible responses:
 401 Unauthorized
 ```
 
+---
 
-# JWT Authentication Middleware
+# Coworking Resources
+
+Coworking resources represent reservable entities inside a coworking space.
+
+Current resource types:
+
+```text
+DESK
+MEETING_ROOM
+```
+
+All coworking resource endpoints currently require authentication.
+
+Request header:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+## List Resources for a Coworking Space
+
+```http
+GET /api/coworking-spaces/:coworkingSpaceId/resources
+```
+
+Example:
+
+```http
+GET /api/coworking-spaces/1/resources
+```
+
+Possible responses:
+
+```text
+200 OK
+400 Bad Request
+401 Unauthorized
+```
+
+---
+
+## Get Resource by ID
+
+```http
+GET /api/coworking-resources/:id
+```
+
+Possible responses:
+
+```text
+200 OK
+400 Bad Request
+401 Unauthorized
+404 Not Found
+```
+
+---
+
+## Create Coworking Resource
+
+```http
+POST /api/coworking-resources
+```
+
+Example request:
+
+```json
+{
+  "name": "Desk A1",
+  "type": "DESK",
+  "capacity": 1,
+  "coworkingSpaceId": 1
+}
+```
+
+Meeting room example:
+
+```json
+{
+  "name": "Meeting Room Alpha",
+  "type": "MEETING_ROOM",
+  "capacity": 8,
+  "coworkingSpaceId": 1
+}
+```
+
+Possible responses:
+
+```text
+201 Created
+400 Bad Request
+401 Unauthorized
+404 Not Found
+```
+
+A `404 Not Found` is returned when the referenced coworking space does not exist.
+
+---
+
+# Authentication Middleware
 
 Protected backend routes use JWT authentication middleware.
 
 Flow:
 
 ```text
-HTTP Request
+HTTP request
     ↓
 Authorization: Bearer <token>
     ↓
-JWT authentication middleware
+authenticate middleware
     ↓
-jwt.verify(...)
+JWT verification
     ↓
-Authenticated user attached to req.user
+req.user
     ↓
-Protected controller
+protected controller
 ```
 
 Authentication and authorization are intentionally separated.
-
-The current middleware verifies the user's identity.
 
 Role-based authorization will be implemented separately.
 
@@ -599,15 +686,17 @@ The frontend uses React Context to centralize authentication state.
 - session restoration
 - authentication loading state
 
-Authentication logic is centralized instead of accessing browser storage directly from multiple components.
+Authenticated API calls are centralized through:
+
+```text
+frontend/src/lib/api.ts
+```
 
 ---
 
 ## Session Restoration
 
-When the frontend starts, it checks whether an access token exists.
-
-If one exists, it calls:
+On application startup, the frontend restores the user session using:
 
 ```http
 GET /api/auth/me
@@ -618,16 +707,14 @@ Flow:
 ```text
 Application starts
     ↓
-Access token available?
+Stored access token?
     ↓
 GET /api/auth/me
     ↓
 Valid token?
-    ├── Yes → restore authenticated user
+    ├── Yes → restore user
     └── No  → clear authentication state
 ```
-
-The backend remains the source of truth for authentication.
 
 ---
 
@@ -639,19 +726,11 @@ The backend remains the source of truth for authentication.
 /login
 ```
 
-Successful authentication redirects the user to:
-
-```text
-/dashboard
-```
-
 ## Registration
 
 ```text
 /register
 ```
-
-Allows a new user to create an account.
 
 ## Dashboard
 
@@ -659,13 +738,7 @@ Allows a new user to create an account.
 /dashboard
 ```
 
-This route is protected.
-
-Unauthenticated users are redirected to:
-
-```text
-/login
-```
+Protected route.
 
 ## Coworking Spaces
 
@@ -675,8 +748,6 @@ Unauthenticated users are redirected to:
 
 Protected route.
 
-Displays all coworking spaces available to authenticated users.
-
 ## Coworking Space Details
 
 ```text
@@ -685,8 +756,6 @@ Displays all coworking spaces available to authenticated users.
 
 Protected route.
 
-Displays details for a selected coworking space.
-
 ## Create Coworking Space
 
 ```text
@@ -694,45 +763,6 @@ Displays details for a selected coworking space.
 ```
 
 Protected route.
-
-Allows authenticated users to create a new coworking space.
----
-
-# Protected Frontend Routes
-
-Protected React routes use:
-
-```text
-ProtectedRoute
-```
-
-Flow:
-
-```text
-/dashboard
-    ↓
-ProtectedRoute
-    ↓
-Authentication loading?
-    ↓
-Authenticated user?
-    ├── Yes → render protected page
-    └── No  → redirect to /login
-```
-
----
-
-# Logout
-
-Logging out:
-
-```text
-Remove stored access token
-    ↓
-Clear authenticated user
-    ↓
-Protected routes become inaccessible
-```
 
 ---
 
@@ -750,7 +780,7 @@ createdAt
 updatedAt
 ```
 
-Passwords are stored as Argon2 hashes.
+---
 
 ## CoworkingSpace
 
@@ -763,9 +793,33 @@ city
 country
 createdAt
 updatedAt
+resources[]
 ```
 
-`description` is optional.
+---
+
+## CoworkingResource
+
+```text
+id
+name
+type
+capacity
+coworkingSpaceId
+createdAt
+updatedAt
+```
+
+Resource type:
+
+```text
+DESK
+MEETING_ROOM
+```
+
+Each resource belongs to one coworking space.
+
+A coworking space can contain multiple resources.
 
 ---
 
@@ -778,59 +832,57 @@ updatedAt
 - Docker development database
 - Prisma ORM
 - Shared TypeScript and Zod package
-- Shared frontend/backend authentication schemas
+- Shared authentication schemas
 - Shared coworking space validation schema
+- Shared coworking resource validation schema
 - User registration API
 - User registration UI
-- Argon2 password hashing
 - User login API
 - User login UI
+- Argon2 password hashing
 - JWT access token generation
 - JWT authentication middleware
 - Protected backend routes
-- Authenticated user endpoint
 - React authentication context
-- Centralized frontend authentication state
-- Session restoration using `/api/auth/me`
+- Session restoration
 - Protected frontend routes
-- Authenticated dashboard
-- Logout flow
+- Centralized authenticated API client
 - Coworking space data model
-- Coworking space listing API
-- Coworking space details API
-- Authenticated coworking space creation
-- Tailwind CSS
-- shadcn/ui with Base UI
-- GitHub Actions CI
-- Monorepo build pipeline
 - Protected coworking space listing
 - Protected coworking space details
+- Authenticated coworking space creation
 - Coworking space frontend pages
-- Centralized authenticated API client
+- Coworking resource data model
+- Coworking resource types
+- Authenticated coworking resource listing
+- Authenticated coworking resource details
+- Authenticated coworking resource creation
+- GitHub Actions CI
+- Monorepo build pipeline
 
 ---
 
 # Planned Features
 
-- Improved authentication security using HTTP-only cookies
+- Coworking resources frontend
+- Coworking space update and deletion
+- Coworking resource update and deletion
 - Role-based authorization
 - User roles
-- Coworking space update and deletion
-- Coworking resource management
-- Desks and meeting rooms
 - Resource availability
 - Booking creation
 - Booking cancellation
 - Booking history
 - Booking conflict prevention
 - Admin dashboard
-- User dashboard improvements
+- Improved user dashboard
 - Swagger / OpenAPI documentation
 - Backend tests with Vitest and Supertest
 - Frontend tests
 - CI test pipeline
 - Improved error handling
 - Form validation UX improvements
+- HTTP-only cookie authentication
 - Deployment
 
 ---
@@ -839,15 +891,15 @@ updatedAt
 
 The current MVP stores the JWT access token in browser `localStorage`.
 
-This simplifies the initial authentication implementation, but it is not intended to be the final production authentication architecture.
+This is acceptable for the current development stage, but it is not intended to be the final production authentication architecture.
 
-A future improvement will migrate authentication toward HTTP-only cookies to reduce direct JavaScript access to authentication tokens and limit token exposure in case of XSS vulnerabilities.
+A future improvement will migrate authentication toward HTTP-only cookies.
 
 ---
 
 # CI
 
-GitHub Actions runs CI for pushes and pull requests targeting:
+GitHub Actions runs on pushes and pull requests targeting:
 
 ```text
 develop
@@ -868,7 +920,7 @@ Generate Prisma Client
 Build backend
 ```
 
-Run the same build locally with:
+Run locally with:
 
 ```bash
 npm run build
@@ -877,8 +929,6 @@ npm run build
 ---
 
 # Git Workflow
-
-Development follows a feature-branch workflow.
 
 ```text
 feature/*
@@ -892,21 +942,23 @@ Pull Request
 main
 ```
 
-## Branches
-
-### `main`
-
-Stable production-ready branch.
-
-### `develop`
-
-Integration branch for completed features.
-
-### Feature branches
+## Main Branch
 
 ```text
-feature/<feature-name>
+main
 ```
+
+Stable branch.
+
+## Integration Branch
+
+```text
+develop
+```
+
+Completed features are merged here first.
+
+## Feature Branches
 
 Examples:
 
@@ -916,6 +968,8 @@ feature/user-login
 feature/auth-middleware
 feature/frontend-auth-state
 feature/coworking-spaces
+feature/coworking-spaces-ui
+feature/coworking-resources
 ```
 
 Other prefixes:
@@ -930,27 +984,24 @@ chore/
 
 # Commit Convention
 
-The project follows Conventional Commit-style messages when practical.
-
 Examples:
 
 ```text
 feat: add user login
-feat: add frontend authentication state
 feat: add coworking spaces API
+feat: add protected coworking spaces frontend
+feat: add coworking resources API
 fix: handle invalid JWT
 refactor: move schemas to shared package
 chore: update CI configuration
 docs: update project documentation
 ```
 
-Commits should remain focused and describe one logical change.
-
 ---
 
 # Pull Requests
 
-Feature branches should normally be merged into:
+Feature branches are merged into:
 
 ```text
 develop
@@ -958,41 +1009,34 @@ develop
 
 The `main` branch remains stable.
 
-The `develop` branch will be merged into `main` when the first MVP is complete.
-
-The initial MVP target includes:
+The first MVP target includes:
 
 - user registration
 - user login
 - coworking spaces
+- coworking resources
 - basic booking functionality
+
+Once the first MVP is complete, `develop` will be merged into `main`.
 
 ---
 
 # Code Quality Principles
 
-The project aims to follow these principles:
-
 - separation of concerns
-- reusable components
-- service / controller / route separation
-- centralized authentication logic
+- route / controller / service separation
 - shared frontend/backend schemas
+- centralized authentication logic
+- centralized authenticated API client
 - backend as the source of truth
-- environment variables for configuration
+- environment-based configuration
 - no secrets committed to Git
-- small feature branches
-- small and descriptive commits
-- pull requests before integration
-- stable `main` branch
 - strict TypeScript
 - explicit API error handling
-
----
-
-# License
-
-A license has not been selected yet.
+- small feature branches
+- descriptive commits
+- pull requests before integration
+- stable `main`
 
 ---
 
@@ -1003,7 +1047,7 @@ A license has not been selected yet.
 Current milestone:
 
 ```text
-Coworking domain and booking MVP
+Coworking resources
 ```
 
 Completed:
@@ -1011,15 +1055,13 @@ Completed:
 ```text
 Authentication foundation
     ↓
-CoworkingSpace database model
+Coworking spaces
     ↓
-CoworkingSpace validation
-    ↓
-CoworkingSpace API
+Coworking resources API
 ```
 
-Next milestone:
+Next:
 
 ```text
-Coworking spaces frontend
+Coworking resources frontend
 ```
