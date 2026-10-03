@@ -6,7 +6,6 @@ import type {
 import type { CreateCoworkingSpaceInput } from "@coworking/shared";
 import { apiFetch } from "@/lib/api";
 
-const API_URL = import.meta.env.VITE_API_URL;
 export async function getCoworkingSpaces(
   accessToken: string,
 ): Promise<CoworkingSpace[]> {
@@ -31,7 +30,7 @@ export async function getCoworkingSpaceById(
   id: number,
   accessToken: string,
 ): Promise<CoworkingSpace> {
-  const response = await apiFetch(`${API_URL}/api/coworking-spaces/${id}`, {
+  const response = await apiFetch(`/api/coworking-spaces/${id}`, {
     accessToken,
   });
 
