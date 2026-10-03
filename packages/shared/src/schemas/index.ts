@@ -9,3 +9,10 @@ export {
   createCoworkingSpaceSchema,
   type CreateCoworkingSpaceInput,
 } from "./coworking-space.schema.js";
+
+export {
+  coworkingResourceTypeSchema,
+  createCoworkingResourceSchema,
+  type CoworkingResourceType,
+  type CreateCoworkingResourceInput,
+} from "./coworking-resource.schema.js";
