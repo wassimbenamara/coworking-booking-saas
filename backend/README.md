@@ -1,8 +1,10 @@
-# Coworking Booking - Backend
+# Coworking Booking — Backend
 
 REST API for the Coworking Booking SaaS project.
 
 The backend is part of an npm workspaces monorepo.
+
+---
 
 ## Tech Stack
 
@@ -13,7 +15,9 @@ The backend is part of an npm workspaces monorepo.
 - Prisma ORM
 - Zod
 - Argon2
-- JSON Web Token (JWT)
+- JSON Web Tokens (JWT)
+
+---
 
 ## Shared Package
 
@@ -31,12 +35,16 @@ Example:
 import {
   registerSchema,
   loginSchema,
+  createCoworkingSpaceSchema,
   type RegisterInput,
   type LoginInput,
+  type CreateCoworkingSpaceInput,
 } from "@coworking/shared";
 ```
 
 The backend remains the authoritative validation layer.
+
+---
 
 ## Installation
 
@@ -46,11 +54,21 @@ Dependencies are installed from the monorepo root:
 npm install
 ```
 
-Avoid creating a separate backend `package-lock.json`.
+The project uses one root `package-lock.json`.
+
+Do not create a separate backend lockfile.
+
+---
 
 ## Environment Variables
 
-Create a `.env` file inside the `backend` directory:
+Create:
+
+```text
+backend/.env
+```
+
+Example:
 
 ```env
 DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
@@ -59,11 +77,13 @@ JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=1h
 ```
 
-The `.env` file is ignored by Git and should not be committed.
+The `.env` file is ignored by Git and must not be committed.
+
+---
 
 ## Development
 
-From the project root:
+From the repository root:
 
 ```bash
 npm run dev --workspace=backend
@@ -75,20 +95,30 @@ The API is available by default at:
 http://localhost:3000
 ```
 
+---
+
 ## Build
 
-From the project root:
+From the repository root:
 
 ```bash
 npm run build:backend
 ```
 
-The shared package must be built before the backend:
+The shared package must be built before the backend when its source has changed:
 
 ```bash
 npm run build:shared
 npm run build:backend
 ```
+
+Build the complete monorepo:
+
+```bash
+npm run build
+```
+
+---
 
 ## Start
 
@@ -96,35 +126,69 @@ npm run build:backend
 npm run start --workspace=backend
 ```
 
-## Prisma
+---
 
-### Generate Prisma Client
+# Prisma
 
-```bash
-npm run prisma:generate --workspace=backend
+Prisma configuration is located in:
+
+```text
+backend/prisma.config.ts
 ```
 
-### Validate Prisma schema
+Prisma schema:
 
-```bash
-npm exec --workspace=backend prisma validate
+```text
+backend/prisma/schema.prisma
 ```
 
-### Apply migrations
+The recommended workflow is to run Prisma CLI commands from the backend directory.
 
 ```bash
-npm exec --workspace=backend prisma migrate dev
+cd backend
 ```
 
-### Open Prisma Studio
+## Generate Prisma Client
 
 ```bash
-npm exec --workspace=backend prisma studio
+npx prisma generate
 ```
 
-## Current Endpoints
+## Validate Prisma Schema
 
-### API root
+```bash
+npx prisma validate
+```
+
+## Apply Development Migrations
+
+```bash
+npx prisma migrate dev --name <migration-name>
+```
+
+Example:
+
+```bash
+npx prisma migrate dev --name add_coworking_space
+```
+
+## Open Prisma Studio
+
+```bash
+npx prisma studio
+```
+
+Return to the repository root:
+
+```bash
+cd ..
+```
+
+---
+
+# Current Endpoints
+
+## API Root
 
 ```http
 GET /
@@ -138,7 +202,9 @@ Example response:
 }
 ```
 
-### Health check
+---
+
+## Health Check
 
 ```http
 GET /api/health
@@ -153,7 +219,11 @@ Example response:
 }
 ```
 
-### User registration
+---
+
+# Authentication
+
+## User Registration
 
 ```http
 POST /api/auth/register
@@ -170,35 +240,19 @@ Request body:
 }
 ```
 
-Successful response:
+Possible responses:
 
-```http
+```text
 201 Created
-```
-
-```json
-{
-  "id": 1,
-  "firstName": "Wassim",
-  "lastName": "Ben Amara",
-  "email": "wassim@example.com",
-  "createdAt": "2026-09-26T00:00:00.000Z"
-}
-```
-
-Invalid request data:
-
-```http
 400 Bad Request
-```
-
-Email already registered:
-
-```http
 409 Conflict
 ```
 
-### User login
+Passwords are hashed with Argon2 before being stored.
+
+---
+
+## User Login
 
 ```http
 POST /api/auth/login
@@ -233,15 +287,17 @@ Successful response:
 
 Invalid request data:
 
-```http
+```text
 400 Bad Request
 ```
 
 Invalid email or password:
 
-```http
+```text
 401 Unauthorized
 ```
+
+Example:
 
 ```json
 {
@@ -251,8 +307,9 @@ Invalid email or password:
 
 The same error is returned for an unknown email and an incorrect password to avoid exposing whether an account exists.
 
+---
 
-### Current authenticated user
+## Current Authenticated User
 
 ```http
 GET /api/auth/me
@@ -281,14 +338,147 @@ Successful response:
 }
 ```
 
-Missing, invalid or expired token:
+Missing, invalid, or expired token:
 
-```http
+```text
 401 Unauthorized
 ```
 
+---
 
-## Authentication
+# Coworking Spaces
+
+## List Coworking Spaces
+
+```http
+GET /api/coworking-spaces
+```
+
+Returns all coworking spaces.
+
+Successful response:
+
+```http
+200 OK
+```
+
+Example:
+
+```json
+{
+  "coworkingSpaces": [
+    {
+      "id": 1,
+      "name": "WorkHub Paris",
+      "description": "Modern coworking space in central Paris",
+      "address": "10 Rue de Rivoli",
+      "city": "Paris",
+      "country": "France",
+      "createdAt": "2026-10-01T12:00:00.000Z",
+      "updatedAt": "2026-10-01T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## Get Coworking Space by ID
+
+```http
+GET /api/coworking-spaces/:id
+```
+
+Example:
+
+```http
+GET /api/coworking-spaces/1
+```
+
+Successful response:
+
+```http
+200 OK
+```
+
+Invalid ID:
+
+```text
+400 Bad Request
+```
+
+Unknown coworking space:
+
+```text
+404 Not Found
+```
+
+---
+
+## Create Coworking Space
+
+```http
+POST /api/coworking-spaces
+```
+
+Requires authentication.
+
+Request header:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Request body:
+
+```json
+{
+  "name": "WorkHub Paris",
+  "description": "Modern coworking space in central Paris",
+  "address": "10 Rue de Rivoli",
+  "city": "Paris",
+  "country": "France"
+}
+```
+
+Successful response:
+
+```http
+201 Created
+```
+
+Example:
+
+```json
+{
+  "coworkingSpace": {
+    "id": 1,
+    "name": "WorkHub Paris",
+    "description": "Modern coworking space in central Paris",
+    "address": "10 Rue de Rivoli",
+    "city": "Paris",
+    "country": "France",
+    "createdAt": "2026-10-01T12:00:00.000Z",
+    "updatedAt": "2026-10-01T12:00:00.000Z"
+  }
+}
+```
+
+Invalid request:
+
+```text
+400 Bad Request
+```
+
+Missing or invalid JWT:
+
+```text
+401 Unauthorized
+```
+
+---
+
+# Authentication Architecture
 
 Passwords are hashed using Argon2.
 
@@ -305,9 +495,60 @@ The `sub` claim contains the user's ID.
 
 Sensitive information such as passwords is never stored inside the JWT.
 
-## Current Database Models
+Protected routes use the authentication middleware.
 
-### User
+Flow:
+
+```text
+HTTP request
+    ↓
+Authorization: Bearer <token>
+    ↓
+authenticate middleware
+    ↓
+JWT verification
+    ↓
+req.user
+    ↓
+protected controller
+```
+
+Authentication and authorization remain separate concerns.
+
+Role-based authorization will be added later.
+
+---
+
+# Validation
+
+Request validation uses Zod.
+
+Schemas shared with the frontend live in:
+
+```text
+packages/shared/src/schemas/
+```
+
+Current schemas include:
+
+```text
+auth.schema.ts
+coworking-space.schema.ts
+```
+
+Example:
+
+```ts
+const validation = createCoworkingSpaceSchema.safeParse(req.body);
+```
+
+The backend remains the final source of truth for request validation.
+
+---
+
+# Database Models
+
+## User
 
 ```text
 id
@@ -321,55 +562,129 @@ updatedAt
 
 Passwords are stored as Argon2 hashes.
 
-## Project Structure
+---
+
+## CoworkingSpace
+
+```text
+id
+name
+description
+address
+city
+country
+createdAt
+updatedAt
+```
+
+`description` is optional / nullable.
+
+---
+
+# Project Structure
 
 ```text
 backend/
 ├── prisma/
 │   ├── migrations/
 │   └── schema.prisma
+│
 ├── src/
 │   ├── config/
 │   │   └── auth.config.ts
+│   │
 │   ├── controllers/
-│   │   └── auth.controller.ts
+│   │   ├── auth.controller.ts
+│   │   └── coworking-space.controller.ts
+│   │
 │   ├── generated/
 │   │   └── prisma/
+│   │
 │   ├── lib/
 │   │   └── prisma.ts
+│   │
+│   ├── middlewares/
+│   │   └── auth.middleware.ts
+│   │
 │   ├── routes/
-│   │   └── auth.routes.ts
+│   │   ├── auth.routes.ts
+│   │   └── coworking-space.routes.ts
+│   │
 │   ├── services/
-│   │   └── auth.service.ts
+│   │   ├── auth.service.ts
+│   │   └── coworking-space.service.ts
+│   │
+│   ├── types/
+│   │   └── express.d.ts
+│   │
 │   └── server.ts
-|   ├── middlewares/
-│       └── auth.middleware.ts
-|   ├── types/
-│       └── express.d.ts
+│
 ├── .env.example
-├── prisma7.config.ts
+├── prisma.config.ts
 ├── package.json
 └── tsconfig.json
 ```
 
-Shared authentication schemas are located in:
+Shared schemas:
 
 ```text
-packages/shared/src/schemas/auth.schema.ts
+packages/shared/src/schemas/
+├── auth.schema.ts
+└── coworking-space.schema.ts
 ```
 
-## Current Features
+---
+
+# Architecture
+
+Coworking features follow a separation of concerns:
+
+```text
+HTTP Request
+    ↓
+Route
+    ↓
+Controller
+    ↓
+Service
+    ↓
+Prisma
+    ↓
+PostgreSQL
+```
+
+Responsibilities:
+
+```text
+Route
+→ endpoint declaration and middleware
+
+Controller
+→ HTTP request / response handling
+
+Service
+→ business and persistence logic
+
+Prisma
+→ database access
+```
+
+---
+
+# Current Features
 
 - Express REST API
 - TypeScript configuration
 - Health check endpoint
-- PostgreSQL database connection
-- Prisma ORM configuration
-- Initial database migration
+- PostgreSQL database
+- Prisma ORM
+- Database migrations
 - User database model
+- CoworkingSpace database model
 - User registration
 - User login
 - Shared request validation with Zod
+- Shared coworking space validation
 - Password hashing with Argon2
 - Duplicate email prevention
 - JWT access token generation
@@ -377,17 +692,39 @@ packages/shared/src/schemas/auth.schema.ts
 - JWT authentication middleware
 - Protected routes
 - Authenticated user endpoint
+- Coworking space listing
+- Coworking space details
+- Authenticated coworking space creation
 
-## Planned Features
+---
 
+# Planned Features
+
+- Coworking space update
+- Coworking space deletion
 - Role management
-- Coworking space management
+- Role-based authorization
 - Room and desk management
+- Resource availability
 - Booking system
 - Booking conflict prevention
 - Swagger / OpenAPI documentation
-- Automated tests
+- Automated backend tests
 
-## Status
+---
+
+# Status
 
 🚧 Work in progress.
+
+Current backend milestone:
+
+```text
+Coworking spaces API
+```
+
+Next:
+
+```text
+Coworking resources and booking domain
+```
