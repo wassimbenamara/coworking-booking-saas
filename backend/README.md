@@ -348,40 +348,26 @@ Missing, invalid, or expired token:
 
 # Coworking Spaces
 
+All coworking space routes are protected by the JWT authentication middleware.
+
+Requests must include:
+
+```http
+Authorization: Bearer <access_token>
+```
+
 ## List Coworking Spaces
 
 ```http
 GET /api/coworking-spaces
 ```
 
-Returns all coworking spaces.
+Possible responses:
 
-Successful response:
-
-```http
+```text
 200 OK
+401 Unauthorized
 ```
-
-Example:
-
-```json
-{
-  "coworkingSpaces": [
-    {
-      "id": 1,
-      "name": "WorkHub Paris",
-      "description": "Modern coworking space in central Paris",
-      "address": "10 Rue de Rivoli",
-      "city": "Paris",
-      "country": "France",
-      "createdAt": "2026-10-01T12:00:00.000Z",
-      "updatedAt": "2026-10-01T12:00:00.000Z"
-    }
-  ]
-}
-```
-
----
 
 ## Get Coworking Space by ID
 
@@ -389,31 +375,14 @@ Example:
 GET /api/coworking-spaces/:id
 ```
 
-Example:
+Possible responses:
 
-```http
-GET /api/coworking-spaces/1
-```
-
-Successful response:
-
-```http
+```text
 200 OK
-```
-
-Invalid ID:
-
-```text
 400 Bad Request
-```
-
-Unknown coworking space:
-
-```text
+401 Unauthorized
 404 Not Found
 ```
-
----
 
 ## Create Coworking Space
 
@@ -421,62 +390,13 @@ Unknown coworking space:
 POST /api/coworking-spaces
 ```
 
-Requires authentication.
+Possible responses:
 
-Request header:
-
-```http
-Authorization: Bearer <access_token>
-```
-
-Request body:
-
-```json
-{
-  "name": "WorkHub Paris",
-  "description": "Modern coworking space in central Paris",
-  "address": "10 Rue de Rivoli",
-  "city": "Paris",
-  "country": "France"
-}
-```
-
-Successful response:
-
-```http
+```text
 201 Created
-```
-
-Example:
-
-```json
-{
-  "coworkingSpace": {
-    "id": 1,
-    "name": "WorkHub Paris",
-    "description": "Modern coworking space in central Paris",
-    "address": "10 Rue de Rivoli",
-    "city": "Paris",
-    "country": "France",
-    "createdAt": "2026-10-01T12:00:00.000Z",
-    "updatedAt": "2026-10-01T12:00:00.000Z"
-  }
-}
-```
-
-Invalid request:
-
-```text
 400 Bad Request
-```
-
-Missing or invalid JWT:
-
-```text
 401 Unauthorized
 ```
-
----
 
 # Authentication Architecture
 
@@ -669,6 +589,12 @@ Prisma
 → database access
 ```
 
+The coworking router applies authentication to all routes:
+```text
+router.use(authenticate);
+```
+
+
 ---
 
 # Current Features
@@ -692,8 +618,9 @@ Prisma
 - JWT authentication middleware
 - Protected routes
 - Authenticated user endpoint
-- Coworking space listing
-- Coworking space details
+- Protected coworking space routes
+- Authenticated coworking space listing
+- Authenticated coworking space details
 - Authenticated coworking space creation
 
 ---
