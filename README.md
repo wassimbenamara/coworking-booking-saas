@@ -53,16 +53,17 @@ coworking-booking-saas/
 │   ├── prisma/
 │   │   ├── migrations/
 │   │   └── schema.prisma
-│   │
-│   └── src/
-│       ├── config/
-│       ├── controllers/
-│       ├── generated/
-│       ├── lib/
-│       ├── middlewares/
-│       ├── routes/
-│       ├── services/
-│       └── types/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── generated/
+│   │   ├── lib/
+│   │   ├── middlewares/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   └── types/
+│   ├── prisma.config.ts
+│   └── package.json
 │
 ├── frontend/
 │   └── src/
@@ -70,15 +71,12 @@ coworking-booking-saas/
 │       │   ├── auth/
 │       │   │   └── ProtectedRoute.tsx
 │       │   └── ui/
-│       │
 │       ├── contexts/
 │       │   └── AuthContext.tsx
-│       │
 │       ├── pages/
 │       │   ├── DashboardPage.tsx
 │       │   ├── LoginPage.tsx
 │       │   └── RegisterPage.tsx
-│       │
 │       ├── services/
 │       └── types/
 │
@@ -86,6 +84,8 @@ coworking-booking-saas/
 │   └── shared/
 │       └── src/
 │           ├── schemas/
+│           │   ├── auth.schema.ts
+│           │   └── coworking-space.schema.ts
 │           └── index.ts
 │
 ├── .github/
@@ -105,7 +105,7 @@ coworking-booking-saas/
 
 The project uses npm workspaces.
 
-The following workspaces are available:
+Available workspaces:
 
 ```text
 frontend
@@ -113,13 +113,13 @@ backend
 packages/shared
 ```
 
-Dependencies are installed from the project root.
+Install dependencies from the project root:
 
 ```bash
 npm install
 ```
 
-A single root `package-lock.json` is used for the whole repository.
+A single root `package-lock.json` is used for the entire repository.
 
 ---
 
@@ -131,9 +131,9 @@ Shared validation schemas and TypeScript types are located in:
 packages/shared
 ```
 
-The package is available as:
+The package is exposed as:
 
-```ts
+```text
 @coworking/shared
 ```
 
@@ -143,12 +143,16 @@ Example:
 import {
   loginSchema,
   registerSchema,
+  createCoworkingSpaceSchema,
   type LoginInput,
   type RegisterInput,
+  type CreateCoworkingSpaceInput,
 } from "@coworking/shared";
 ```
 
-This avoids duplicating validation logic between the frontend and backend.
+This avoids duplicating validation rules between the frontend and backend.
+
+The backend remains the authoritative validation layer.
 
 ---
 
@@ -160,8 +164,6 @@ Create the required `.env` files from the provided `.env.example` files.
 
 ### Root
 
-Example:
-
 ```env
 POSTGRES_USER=coworking_user
 POSTGRES_PASSWORD=change_me
@@ -170,8 +172,6 @@ POSTGRES_PORT=5432
 ```
 
 ### Backend
-
-Example:
 
 ```env
 DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
@@ -182,13 +182,11 @@ JWT_EXPIRES_IN=1h
 
 ### Frontend
 
-Example:
-
 ```env
 VITE_API_URL=http://localhost:3000
 ```
 
-Only variables prefixed with `VITE_` are exposed to the Vite frontend.
+Only environment variables prefixed with `VITE_` are exposed to the frontend by Vite.
 
 ---
 
@@ -201,7 +199,7 @@ git clone <repository-url>
 cd coworking-booking-saas
 ```
 
-Install all workspace dependencies:
+Install dependencies:
 
 ```bash
 npm install
@@ -219,13 +217,13 @@ npm run build:shared
 
 PostgreSQL runs locally using Docker Compose.
 
-Start the database:
+Start PostgreSQL:
 
 ```bash
 docker compose up -d
 ```
 
-Check the containers:
+Check containers:
 
 ```bash
 docker compose ps
@@ -237,43 +235,69 @@ View PostgreSQL logs:
 docker compose logs postgres
 ```
 
-Stop the containers:
+Stop containers:
 
 ```bash
 docker compose down
 ```
 
-> `docker compose down -v` also deletes the PostgreSQL volume and stored database data.
+> `docker compose down -v` also deletes the PostgreSQL volume and all stored database data.
 
 ---
 
 ## Prisma
 
-The backend uses Prisma with PostgreSQL.
+Prisma is configured inside the backend workspace.
 
-Generate the Prisma client:
+The recommended workflow is to run Prisma commands from:
+
+```text
+backend/
+```
+
+Enter the backend workspace:
 
 ```bash
-npm run prisma:generate --workspace=backend
+cd backend
+```
+
+Generate Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+Validate the Prisma schema:
+
+```bash
+npx prisma validate
 ```
 
 Create or apply a development migration:
 
 ```bash
-npx prisma migrate dev --name <migration-name> --schema backend/prisma/schema.prisma
+npx prisma migrate dev --name <migration-name>
 ```
 
-Prisma Studio can be used to inspect the database:
+Open Prisma Studio:
 
 ```bash
-npx prisma studio --schema backend/prisma/schema.prisma
+npx prisma studio
+```
+
+Return to the repository root:
+
+```bash
+cd ..
 ```
 
 ---
 
 ## Development
 
-### Start the backend
+### Backend
+
+From the repository root:
 
 ```bash
 npm run dev --workspace=backend
@@ -285,7 +309,7 @@ Default API URL:
 http://localhost:3000
 ```
 
-### Start the frontend
+### Frontend
 
 ```bash
 npm run dev --workspace=frontend
@@ -317,9 +341,9 @@ npm run build:backend
 
 ---
 
-## API
+# API
 
-### API root
+## API Root
 
 ```http
 GET /
@@ -335,7 +359,7 @@ Example response:
 
 ---
 
-### Health Check
+## Health Check
 
 ```http
 GET /api/health
@@ -352,9 +376,9 @@ Example response:
 
 ---
 
-## Authentication
+# Authentication
 
-### Register
+## Register
 
 ```http
 POST /api/auth/register
@@ -371,9 +395,7 @@ Example request:
 }
 ```
 
-The password is hashed using Argon2 before being stored in the database.
-
-Possible responses include:
+Possible responses:
 
 ```text
 201 Created
@@ -381,9 +403,11 @@ Possible responses include:
 409 Conflict
 ```
 
+Passwords are hashed using Argon2 before being stored.
+
 ---
 
-### Login
+## Login
 
 ```http
 POST /api/auth/login
@@ -412,23 +436,25 @@ Example response:
 }
 ```
 
-Invalid credentials return:
+Possible responses:
 
 ```text
+200 OK
+400 Bad Request
 401 Unauthorized
 ```
 
-The API deliberately returns the same error for an unknown email address and an incorrect password to reduce account enumeration risks.
+The API deliberately returns the same error for an unknown email and an incorrect password to reduce account enumeration risks.
 
 ---
 
-### Current Authenticated User
+## Current Authenticated User
 
 ```http
 GET /api/auth/me
 ```
 
-This endpoint is protected and requires a valid JWT.
+Requires a valid JWT access token.
 
 Request header:
 
@@ -455,11 +481,117 @@ Missing, invalid, or expired tokens return:
 
 ---
 
-## JWT Authentication Middleware
+# Coworking Spaces
+
+## List Coworking Spaces
+
+```http
+GET /api/coworking-spaces
+```
+
+Returns all coworking spaces.
+
+Example response:
+
+```json
+{
+  "coworkingSpaces": [
+    {
+      "id": 1,
+      "name": "WorkHub Paris",
+      "description": "Modern coworking space in central Paris",
+      "address": "10 Rue de Rivoli",
+      "city": "Paris",
+      "country": "France",
+      "createdAt": "2026-10-01T12:00:00.000Z",
+      "updatedAt": "2026-10-01T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## Get Coworking Space by ID
+
+```http
+GET /api/coworking-spaces/:id
+```
+
+Example:
+
+```http
+GET /api/coworking-spaces/1
+```
+
+Possible responses:
+
+```text
+200 OK
+400 Bad Request
+404 Not Found
+```
+
+---
+
+## Create Coworking Space
+
+```http
+POST /api/coworking-spaces
+```
+
+Requires authentication.
+
+Request header:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Example request:
+
+```json
+{
+  "name": "WorkHub Paris",
+  "description": "Modern coworking space in central Paris",
+  "address": "10 Rue de Rivoli",
+  "city": "Paris",
+  "country": "France"
+}
+```
+
+Example response:
+
+```json
+{
+  "coworkingSpace": {
+    "id": 1,
+    "name": "WorkHub Paris",
+    "description": "Modern coworking space in central Paris",
+    "address": "10 Rue de Rivoli",
+    "city": "Paris",
+    "country": "France",
+    "createdAt": "2026-10-01T12:00:00.000Z",
+    "updatedAt": "2026-10-01T12:00:00.000Z"
+  }
+}
+```
+
+Possible responses:
+
+```text
+201 Created
+400 Bad Request
+401 Unauthorized
+```
+
+---
+
+# JWT Authentication Middleware
 
 Protected backend routes use JWT authentication middleware.
 
-The authentication flow is:
+Flow:
 
 ```text
 HTTP Request
@@ -477,17 +609,17 @@ Protected controller
 
 Authentication and authorization are intentionally separated.
 
-The current middleware verifies the identity of a user.
+The current middleware verifies the user's identity.
 
 Role-based authorization will be implemented separately.
 
 ---
 
-## Frontend Authentication
+# Frontend Authentication
 
 The frontend uses React Context to centralize authentication state.
 
-The `AuthContext` manages:
+`AuthContext` manages:
 
 - authenticated user
 - JWT access token
@@ -496,23 +628,21 @@ The `AuthContext` manages:
 - session restoration
 - authentication loading state
 
-The application avoids reading authentication state directly from `localStorage` throughout the component tree.
-
-Instead, authentication logic is centralized in the context.
+Authentication logic is centralized instead of accessing browser storage directly from multiple components.
 
 ---
 
 ## Session Restoration
 
-When the application starts, the frontend checks whether an access token exists.
+When the frontend starts, it checks whether an access token exists.
 
-If a token is available, it requests:
+If one exists, it calls:
 
 ```http
 GET /api/auth/me
 ```
 
-The flow is:
+Flow:
 
 ```text
 Application starts
@@ -523,22 +653,20 @@ GET /api/auth/me
     ↓
 Valid token?
     ├── Yes → restore authenticated user
-    └── No  → clear local authentication state
+    └── No  → clear authentication state
 ```
 
 The backend remains the source of truth for authentication.
 
 ---
 
-## Frontend Routes
+# Frontend Routes
 
-### Login
+## Login
 
 ```text
 /login
 ```
-
-Allows existing users to authenticate.
 
 Successful authentication redirects the user to:
 
@@ -546,9 +674,7 @@ Successful authentication redirects the user to:
 /dashboard
 ```
 
----
-
-### Registration
+## Registration
 
 ```text
 /register
@@ -556,9 +682,7 @@ Successful authentication redirects the user to:
 
 Allows a new user to create an account.
 
----
-
-### Dashboard
+## Dashboard
 
 ```text
 /dashboard
@@ -566,17 +690,15 @@ Allows a new user to create an account.
 
 This route is protected.
 
-Unauthenticated users are automatically redirected to:
+Unauthenticated users are redirected to:
 
 ```text
 /login
 ```
 
-The dashboard currently displays basic authenticated user information and provides a logout action.
-
 ---
 
-## Protected Frontend Routes
+# Protected Frontend Routes
 
 Protected React routes use:
 
@@ -584,7 +706,7 @@ Protected React routes use:
 ProtectedRoute
 ```
 
-Example flow:
+Flow:
 
 ```text
 /dashboard
@@ -600,15 +722,54 @@ Authenticated user?
 
 ---
 
-## Logout
+# Logout
 
-Logging out clears the frontend authentication state and removes the stored access token.
+Logging out:
 
-After logout, protected pages are no longer accessible without authenticating again.
+```text
+Remove stored access token
+    ↓
+Clear authenticated user
+    ↓
+Protected routes become inaccessible
+```
 
 ---
 
-## Current Features
+# Database Models
+
+## User
+
+```text
+id
+email
+firstName
+lastName
+password
+createdAt
+updatedAt
+```
+
+Passwords are stored as Argon2 hashes.
+
+## CoworkingSpace
+
+```text
+id
+name
+description
+address
+city
+country
+createdAt
+updatedAt
+```
+
+`description` is optional.
+
+---
+
+# Current Features
 
 - npm workspaces monorepo
 - React + TypeScript frontend
@@ -618,6 +779,7 @@ After logout, protected pages are no longer accessible without authenticating ag
 - Prisma ORM
 - Shared TypeScript and Zod package
 - Shared frontend/backend authentication schemas
+- Shared coworking space validation schema
 - User registration API
 - User registration UI
 - Argon2 password hashing
@@ -633,6 +795,10 @@ After logout, protected pages are no longer accessible without authenticating ag
 - Protected frontend routes
 - Authenticated dashboard
 - Logout flow
+- Coworking space data model
+- Coworking space listing API
+- Coworking space details API
+- Authenticated coworking space creation
 - Tailwind CSS
 - shadcn/ui with Base UI
 - GitHub Actions CI
@@ -640,12 +806,13 @@ After logout, protected pages are no longer accessible without authenticating ag
 
 ---
 
-## Planned Features
+# Planned Features
 
 - Improved authentication security using HTTP-only cookies
 - Role-based authorization
 - User roles
-- Coworking space management
+- Coworking space frontend
+- Coworking space update and deletion
 - Coworking resource management
 - Desks and meeting rooms
 - Resource availability
@@ -655,7 +822,7 @@ After logout, protected pages are no longer accessible without authenticating ag
 - Booking conflict prevention
 - Admin dashboard
 - User dashboard improvements
-- API documentation with Swagger / OpenAPI
+- Swagger / OpenAPI documentation
 - Backend tests with Vitest and Supertest
 - Frontend tests
 - CI test pipeline
@@ -665,17 +832,17 @@ After logout, protected pages are no longer accessible without authenticating ag
 
 ---
 
-## Authentication Security Note
+# Authentication Security Note
 
 The current MVP stores the JWT access token in browser `localStorage`.
 
 This simplifies the initial authentication implementation, but it is not intended to be the final production authentication architecture.
 
-A future security improvement will migrate authentication toward HTTP-only cookies in order to reduce direct JavaScript access to authentication tokens and limit token exposure in case of XSS vulnerabilities.
+A future improvement will migrate authentication toward HTTP-only cookies to reduce direct JavaScript access to authentication tokens and limit token exposure in case of XSS vulnerabilities.
 
 ---
 
-## CI
+# CI
 
 GitHub Actions runs CI for pushes and pull requests targeting:
 
@@ -684,7 +851,7 @@ develop
 main
 ```
 
-The CI pipeline:
+Pipeline:
 
 ```text
 Install dependencies
@@ -698,7 +865,7 @@ Generate Prisma Client
 Build backend
 ```
 
-The full monorepo should also build locally with:
+Run the same build locally with:
 
 ```bash
 npm run build
@@ -706,7 +873,7 @@ npm run build
 
 ---
 
-## Git Workflow
+# Git Workflow
 
 Development follows a feature-branch workflow.
 
@@ -722,17 +889,17 @@ Pull Request
 main
 ```
 
-### Branches
+## Branches
 
-`main`
+### `main`
 
 Stable production-ready branch.
 
-`develop`
+### `develop`
 
 Integration branch for completed features.
 
-Feature branches:
+### Feature branches
 
 ```text
 feature/<feature-name>
@@ -745,9 +912,10 @@ feature/user-registration
 feature/user-login
 feature/auth-middleware
 feature/frontend-auth-state
+feature/coworking-spaces
 ```
 
-Other branch prefixes may include:
+Other prefixes:
 
 ```text
 fix/
@@ -757,7 +925,7 @@ chore/
 
 ---
 
-## Commit Convention
+# Commit Convention
 
 The project follows Conventional Commit-style messages when practical.
 
@@ -766,17 +934,18 @@ Examples:
 ```text
 feat: add user login
 feat: add frontend authentication state
+feat: add coworking spaces API
 fix: handle invalid JWT
 refactor: move schemas to shared package
 chore: update CI configuration
-docs: update authentication documentation
+docs: update project documentation
 ```
 
-Commits should remain focused and small enough to clearly describe one logical change.
+Commits should remain focused and describe one logical change.
 
 ---
 
-## Pull Requests
+# Pull Requests
 
 Feature branches should normally be merged into:
 
@@ -797,12 +966,13 @@ The initial MVP target includes:
 
 ---
 
-## Code Quality Principles
+# Code Quality Principles
 
 The project aims to follow these principles:
 
 - separation of concerns
 - reusable components
+- service / controller / route separation
 - centralized authentication logic
 - shared frontend/backend schemas
 - backend as the source of truth
@@ -817,46 +987,36 @@ The project aims to follow these principles:
 
 ---
 
-## License
+# License
 
 A license has not been selected yet.
 
 ---
 
-## Status
+# Status
 
-The project is currently under active development.
+🚧 Work in progress.
 
 Current milestone:
 
 ```text
-Authentication foundation
+Coworking domain and booking MVP
 ```
 
-Completed authentication flow:
+Completed:
 
 ```text
-Register
-   ↓
-Login
-   ↓
-JWT
-   ↓
-Backend authentication middleware
-   ↓
-Frontend AuthContext
-   ↓
-Session restoration
-   ↓
-Protected React routes
-   ↓
-Dashboard
-   ↓
-Logout
+Authentication foundation
+    ↓
+CoworkingSpace database model
+    ↓
+CoworkingSpace validation
+    ↓
+CoworkingSpace API
 ```
 
 Next milestone:
 
 ```text
-Coworking domain and booking MVP
+Coworking spaces frontend
 ```

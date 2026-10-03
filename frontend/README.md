@@ -80,13 +80,13 @@ VITE_
 
 ## Shared Package
 
-Authentication schemas and TypeScript types shared with the backend are provided by:
+Shared TypeScript types and validation schemas are provided by:
 
 ```text
 @coworking/shared
 ```
 
-Example:
+Authentication example:
 
 ```ts
 import {
@@ -97,7 +97,9 @@ import {
 } from "@coworking/shared";
 ```
 
-This avoids duplicating validation rules between the frontend and backend.
+The shared package also contains schemas for upcoming domain features such as coworking spaces.
+
+The backend remains the authoritative validation layer.
 
 ---
 
@@ -108,7 +110,6 @@ src/
 ├── components/
 │   ├── auth/
 │   │   └── ProtectedRoute.tsx
-│   │
 │   └── ui/
 │
 ├── contexts/
@@ -132,9 +133,9 @@ src/
 
 ---
 
-## Routes
+# Routes
 
-### Login
+## Login
 
 ```text
 /login
@@ -150,7 +151,7 @@ Successful authentication redirects to:
 
 ---
 
-### Registration
+## Registration
 
 ```text
 /register
@@ -160,7 +161,7 @@ Allows new users to create an account.
 
 ---
 
-### Dashboard
+## Dashboard
 
 ```text
 /dashboard
@@ -176,7 +177,7 @@ Unauthenticated users are redirected to:
 
 ---
 
-## Authentication
+# Authentication
 
 The frontend uses an `AuthContext` to centralize authentication state.
 
@@ -189,27 +190,25 @@ It manages:
 - authentication loading state
 - session restoration
 
-The authentication logic is centralized instead of accessing browser storage directly from multiple components.
+Authentication logic is centralized instead of accessing browser storage directly from multiple components.
 
 ---
 
 ## Login Flow
 
-The login flow is:
-
 ```text
 Login form
-   ↓
+    ↓
 Client-side validation
-   ↓
+    ↓
 POST /api/auth/login
-   ↓
+    ↓
 Receive user + JWT access token
-   ↓
+    ↓
 AuthContext.login(...)
-   ↓
+    ↓
 Store authentication state
-   ↓
+    ↓
 Redirect to /dashboard
 ```
 
@@ -217,7 +216,7 @@ Invalid credentials remain on the login page and display an error message.
 
 ---
 
-## Session Restoration
+# Session Restoration
 
 On application startup, the frontend checks for an existing access token.
 
@@ -231,23 +230,25 @@ Flow:
 
 ```text
 Application starts
-   ↓
+    ↓
 Stored access token?
-   ↓
+    ↓
 Yes
-   ↓
+    ↓
 GET /api/auth/me
-   ↓
+    ↓
 Valid token?
-   ├── Yes → restore authenticated user
-   └── No  → clear authentication state
+    ├── Yes → restore authenticated user
+    └── No  → clear authentication state
 ```
 
-This means a browser refresh does not automatically log out a user with a valid session.
+This means refreshing the browser does not automatically log out a user with a valid session.
+
+The backend remains the source of truth for authentication.
 
 ---
 
-## Protected Routes
+# Protected Routes
 
 Protected routes are handled by:
 
@@ -255,18 +256,18 @@ Protected routes are handled by:
 src/components/auth/ProtectedRoute.tsx
 ```
 
-`ProtectedRoute` checks the authentication state before rendering private pages.
+`ProtectedRoute` verifies authentication state before rendering private pages.
 
 Flow:
 
 ```text
 Protected page requested
-   ↓
+    ↓
 Authentication loading?
-   ↓
+    ↓
 Authenticated user?
-   ├── Yes → render page
-   └── No  → redirect to /login
+    ├── Yes → render page
+    └── No  → redirect to /login
 ```
 
 Example:
@@ -279,23 +280,23 @@ Example:
 
 ---
 
-## Logout
+# Logout
 
 The dashboard currently provides a logout action.
 
-Logout:
+Flow:
 
 ```text
 Remove stored access token
-   ↓
+    ↓
 Clear authenticated user
-   ↓
+    ↓
 Protected routes become inaccessible
 ```
 
 ---
 
-## API Integration
+# API Integration
 
 Authentication requests are centralized in:
 
@@ -303,7 +304,7 @@ Authentication requests are centralized in:
 src/services/auth.service.ts
 ```
 
-Current authentication calls include:
+Current frontend API calls:
 
 ```http
 POST /api/auth/register
@@ -311,11 +312,11 @@ POST /api/auth/login
 GET /api/auth/me
 ```
 
-The backend remains the source of truth for authentication.
+Coworking space API integration will be added in the next frontend feature.
 
 ---
 
-## UI System
+# UI System
 
 The frontend uses:
 
@@ -323,7 +324,7 @@ The frontend uses:
 - shadcn/ui
 - Base UI
 
-Reusable UI components are located in:
+Reusable components are located in:
 
 ```text
 src/components/ui
@@ -340,7 +341,7 @@ Card
 
 ---
 
-## Current Features
+# Current Features
 
 - User registration page
 - Registration API integration
@@ -360,11 +361,13 @@ Card
 
 ---
 
-## Planned Features
+# Planned Features
 
+- Coworking space listing page
+- Coworking space details page
+- Coworking API integration
 - HTTP-only cookie authentication
 - Improved dashboard
-- Coworking space pages
 - Resource listing
 - Desk and meeting room interfaces
 - Availability UI
@@ -380,7 +383,7 @@ Card
 
 ---
 
-## Security Note
+# Security Note
 
 The current MVP stores the JWT access token in browser `localStorage`.
 
@@ -390,7 +393,7 @@ A future improvement will migrate authentication to HTTP-only cookies to reduce 
 
 ---
 
-## Development
+# Development
 
 Start the frontend:
 
@@ -412,7 +415,7 @@ npm run dev --workspace=backend
 
 ---
 
-## Build
+# Build
 
 Build the frontend only:
 
@@ -420,7 +423,7 @@ Build the frontend only:
 npm run build --workspace=frontend
 ```
 
-Build the entire monorepo from the repository root:
+Build the complete monorepo:
 
 ```bash
 npm run build
@@ -428,22 +431,40 @@ npm run build
 
 ---
 
-## Current Authentication Flow
+# Current Authentication Flow
 
 ```text
 Register
-   ↓
+    ↓
 Login
-   ↓
+    ↓
 JWT access token
-   ↓
+    ↓
 AuthContext
-   ↓
+    ↓
 Session restoration
-   ↓
+    ↓
 ProtectedRoute
-   ↓
+    ↓
 Dashboard
-   ↓
+    ↓
 Logout
+```
+
+---
+
+# Status
+
+🚧 Work in progress.
+
+Current frontend milestone:
+
+```text
+Authentication foundation complete
+```
+
+Next:
+
+```text
+Coworking spaces UI
 ```
