@@ -53,7 +53,6 @@ coworking-booking-saas/
 │   ├── prisma/
 │   │   ├── migrations/
 │   │   └── schema.prisma
-│   │
 │   └── src/
 │       ├── config/
 │       ├── controllers/
@@ -67,6 +66,9 @@ coworking-booking-saas/
 ├── frontend/
 │   └── src/
 │       ├── components/
+│       │   ├── auth/
+│       │   ├── navigation/
+│       │   └── ui/
 │       ├── contexts/
 │       ├── lib/
 │       ├── pages/
@@ -104,13 +106,13 @@ backend
 packages/shared
 ```
 
-Dependencies are installed from the project root:
+Install dependencies from the project root:
 
 ```bash
 npm install
 ```
 
-A single root `package-lock.json` is used for the whole repository.
+The repository uses a single root `package-lock.json`.
 
 ---
 
@@ -122,13 +124,13 @@ Shared validation schemas and TypeScript types are located in:
 packages/shared
 ```
 
-The package is available as:
+The package is imported as:
 
 ```ts
 @coworking/shared
 ```
 
-Shared schemas currently include:
+Current shared schemas include:
 
 ```text
 auth.schema.ts
@@ -138,7 +140,7 @@ coworking-space.schema.ts
 resource-availability.schema.ts
 ```
 
-This avoids duplicating validation logic between the frontend and backend.
+This keeps frontend and backend validation contracts aligned.
 
 ---
 
@@ -146,9 +148,9 @@ This avoids duplicating validation logic between the frontend and backend.
 
 Environment files are not committed to Git.
 
-Create the required `.env` files from the provided `.env.example` files.
-
 ### Root
+
+Example:
 
 ```env
 POSTGRES_USER=coworking_user
@@ -159,6 +161,8 @@ POSTGRES_PORT=5432
 
 ### Backend
 
+Example:
+
 ```env
 DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
 JWT_SECRET=change_me_with_a_long_random_secret
@@ -167,11 +171,13 @@ JWT_EXPIRES_IN=1h
 
 ### Frontend
 
+Example:
+
 ```env
 VITE_API_URL=http://localhost:3000
 ```
 
-Only variables prefixed with `VITE_` are exposed to the Vite frontend.
+Only variables prefixed with `VITE_` are exposed to the frontend.
 
 ---
 
@@ -184,10 +190,16 @@ git clone <repository-url>
 cd coworking-booking-saas
 ```
 
-Install all workspace dependencies:
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Start PostgreSQL:
+
+```bash
+docker compose up -d
 ```
 
 Build the shared package:
@@ -200,41 +212,45 @@ npm run build:shared
 
 ## Database
 
-PostgreSQL runs locally using Docker Compose.
+PostgreSQL runs locally through Docker Compose.
 
-Start the database:
+Start:
 
 ```bash
 docker compose up -d
 ```
 
-Check the containers:
+Check status:
 
 ```bash
 docker compose ps
 ```
 
-View PostgreSQL logs:
+Logs:
 
 ```bash
 docker compose logs postgres
 ```
 
-Stop the containers:
+Stop:
 
 ```bash
 docker compose down
 ```
 
-> `docker compose down -v` also deletes the PostgreSQL volume and stored database data.
+> `docker compose down -v` also removes the PostgreSQL volume and stored data.
 
 ---
 
 ## Prisma
 
-The backend uses Prisma with PostgreSQL.
+Run Prisma commands from:
 
-From the `backend` directory:
+```text
+backend/
+```
+
+Validate:
 
 ```bash
 npx prisma validate
@@ -246,7 +262,7 @@ Create a migration:
 npx prisma migrate dev --name <migration-name>
 ```
 
-Generate the Prisma client:
+Generate Prisma Client:
 
 ```bash
 npx prisma generate
@@ -262,7 +278,7 @@ npx prisma studio
 
 ## Development
 
-### Start the backend
+### Backend
 
 ```bash
 npm run dev --workspace=backend
@@ -274,7 +290,7 @@ Default API URL:
 http://localhost:3000
 ```
 
-### Start the frontend
+### Frontend
 
 ```bash
 npm run dev --workspace=frontend
@@ -296,7 +312,7 @@ Build the complete monorepo:
 npm run build
 ```
 
-Or build individual workspaces:
+Or individually:
 
 ```bash
 npm run build:shared
@@ -308,29 +324,13 @@ npm run build:backend
 
 # API
 
-## API Root
-
-```http
-GET /
-```
-
-Example response:
-
-```json
-{
-  "message": "Coworking Booking API"
-}
-```
-
----
-
 ## Health Check
 
 ```http
 GET /api/health
 ```
 
-Example response:
+Example:
 
 ```json
 {
@@ -360,8 +360,6 @@ Example:
 }
 ```
 
-Passwords are hashed using Argon2 before being stored.
-
 Possible responses:
 
 ```text
@@ -369,6 +367,8 @@ Possible responses:
 400 Bad Request
 409 Conflict
 ```
+
+Passwords are hashed using Argon2.
 
 ---
 
@@ -387,19 +387,7 @@ Example:
 }
 ```
 
-Example response:
-
-```json
-{
-  "user": {
-    "id": 1,
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "john@example.com"
-  },
-  "accessToken": "<jwt-access-token>"
-}
-```
+Successful authentication returns a user and JWT access token.
 
 Invalid credentials return:
 
@@ -407,11 +395,11 @@ Invalid credentials return:
 401 Unauthorized
 ```
 
-The same error is returned for unknown email addresses and incorrect passwords to reduce account enumeration risks.
+The backend deliberately uses the same error response for unknown email addresses and incorrect passwords.
 
 ---
 
-## Current Authenticated User
+## Current User
 
 ```http
 GET /api/auth/me
@@ -423,44 +411,25 @@ Requires:
 Authorization: Bearer <access_token>
 ```
 
-Missing, invalid, or expired JWTs return:
-
-```text
-401 Unauthorized
-```
-
 ---
 
 # Coworking Spaces
 
-All coworking domain routes are protected by JWT authentication.
+All coworking application endpoints require authentication.
 
-## List Coworking Spaces
+## List
 
 ```http
 GET /api/coworking-spaces
 ```
 
----
-
-## Get Coworking Space
+## Details
 
 ```http
 GET /api/coworking-spaces/:id
 ```
 
-Possible responses:
-
-```text
-200 OK
-400 Bad Request
-401 Unauthorized
-404 Not Found
-```
-
----
-
-## Create Coworking Space
+## Create
 
 ```http
 POST /api/coworking-spaces
@@ -471,26 +440,18 @@ Example:
 ```json
 {
   "name": "WorkHub Paris",
-  "description": "Modern coworking space in central Paris",
+  "description": "Modern coworking space",
   "address": "10 Rue de Rivoli",
   "city": "Paris",
   "country": "France"
 }
 ```
 
-Possible responses:
-
-```text
-201 Created
-400 Bad Request
-401 Unauthorized
-```
-
 ---
 
 # Coworking Resources
 
-A coworking space can contain multiple bookable resources.
+Resources represent desks or meeting rooms.
 
 Supported resource types:
 
@@ -499,21 +460,17 @@ DESK
 MEETING_ROOM
 ```
 
-## List Resources for a Coworking Space
+## List Resources
 
 ```http
 GET /api/coworking-spaces/:coworkingSpaceId/resources
 ```
 
----
-
-## Get Resource
+## Resource Details
 
 ```http
 GET /api/coworking-resources/:id
 ```
-
----
 
 ## Create Resource
 
@@ -536,31 +493,12 @@ Example:
 
 # Resource Availability
 
-Resource availability defines the time ranges during which a coworking resource can be booked.
-
-All availability endpoints require JWT authentication.
+Availability defines the time ranges during which a resource may be booked.
 
 ## List Resource Availabilities
 
 ```http
 GET /api/coworking-resources/:resourceId/availabilities
-```
-
-Example response:
-
-```json
-{
-  "availabilities": [
-    {
-      "id": 1,
-      "resourceId": 1,
-      "startsAt": "2026-10-10T09:00:00.000Z",
-      "endsAt": "2026-10-10T18:00:00.000Z",
-      "createdAt": "2026-10-04T09:00:00.000Z",
-      "updatedAt": "2026-10-04T09:00:00.000Z"
-    }
-  ]
-}
 ```
 
 Possible responses:
@@ -602,10 +540,12 @@ Possible responses:
 
 Validation rules:
 
-- `resourceId` must be a positive integer
-- `startsAt` must be a valid ISO datetime
-- `endsAt` must be a valid ISO datetime
-- `endsAt` must be after `startsAt`
+```text
+resourceId > 0
+startsAt = valid ISO datetime
+endsAt = valid ISO datetime
+endsAt > startsAt
+```
 
 ---
 
@@ -613,7 +553,7 @@ Validation rules:
 
 Availability ranges for the same resource cannot overlap.
 
-Overlap rule:
+Rule:
 
 ```text
 existing.startsAt < new.endsAt
@@ -637,7 +577,7 @@ Rejected:
 
 Conflicting availability returns:
 
-```http
+```text
 409 Conflict
 ```
 
@@ -645,16 +585,16 @@ Conflicting availability returns:
 
 # Booking
 
-Authenticated users can create bookings for coworking resources.
+Authenticated users can book coworking resources.
 
 A booking:
 
 - belongs to the authenticated user
-- belongs to one coworking resource
-- must fit inside an existing availability window
-- must not overlap another booking for the same resource
+- belongs to one resource
+- must fit inside an availability window
+- cannot overlap another booking for the same resource
 
-The authenticated user is derived from the JWT.
+The authenticated user is obtained from the JWT.
 
 `userId` is never accepted from the request body.
 
@@ -665,8 +605,6 @@ The authenticated user is derived from the JWT.
 ```http
 GET /api/bookings/me
 ```
-
-Returns bookings belonging to the authenticated user.
 
 Possible responses:
 
@@ -703,25 +641,23 @@ Possible responses:
 409 Conflict
 ```
 
-Validation rules:
+---
 
-- `resourceId` must be a positive integer
-- `startsAt` must be a valid ISO datetime
-- `endsAt` must be a valid ISO datetime
-- `endsAt` must be after `startsAt`
+## Booking Availability Validation
 
-Business rules:
+A booking must fit entirely inside an availability range.
 
-- the resource must exist
-- the booking must fit entirely inside an availability window
-- the booking must not overlap another booking for the same resource
-- the user is determined from the authenticated JWT
+```text
+availability.startsAt <= booking.startsAt
+AND
+availability.endsAt >= booking.endsAt
+```
 
 ---
 
 ## Booking Conflict Prevention
 
-A booking overlaps another booking when:
+Bookings cannot overlap for the same resource.
 
 ```text
 existing.startsAt < new.endsAt
@@ -732,20 +668,20 @@ existing.endsAt > new.startsAt
 Allowed:
 
 ```text
-Booking A: 09:00 → 10:00
-Booking B: 10:00 → 11:00
+09:00 → 10:00
+10:00 → 11:00
 ```
 
 Rejected:
 
 ```text
-Booking A: 09:00 → 11:00
-Booking B: 10:00 → 12:00
+09:00 → 11:00
+10:00 → 12:00
 ```
 
 Conflicts return:
 
-```http
+```text
 409 Conflict
 ```
 
@@ -782,8 +718,6 @@ createdAt
 updatedAt
 ```
 
-A coworking space can contain multiple resources.
-
 ---
 
 ## CoworkingResource
@@ -798,13 +732,6 @@ createdAt
 updatedAt
 ```
 
-Supported types:
-
-```text
-DESK
-MEETING_ROOM
-```
-
 Relationships:
 
 ```text
@@ -814,8 +741,6 @@ CoworkingSpace
       *
 CoworkingResource
 ```
-
-A resource can have multiple availability ranges and bookings.
 
 ---
 
@@ -840,11 +765,7 @@ CoworkingResource
 ResourceAvailability
 ```
 
-Each availability belongs to one coworking resource.
-
-Deleting the resource also deletes its availability ranges.
-
-Indexes are defined for:
+Indexes:
 
 ```text
 resourceId
@@ -868,20 +789,20 @@ updatedAt
 Relationships:
 
 ```text
-User
-  1
+User 1
   ↓
   *
 Booking
-  *
-  ↑
-  1
-CoworkingResource
 ```
 
-Each booking belongs to one user and one coworking resource.
+```text
+CoworkingResource 1
+        ↓
+        *
+Booking
+```
 
-Indexes are defined for:
+Indexes:
 
 ```text
 userId
@@ -891,35 +812,85 @@ resourceId + startsAt + endsAt
 
 ---
 
-# Authentication Architecture
+# Frontend Routes
 
-Protected backend routes use JWT authentication middleware.
+Public:
 
 ```text
-HTTP Request
+/login
+/register
+```
+
+Protected:
+
+```text
+/dashboard
+/coworking-spaces
+/coworking-spaces/new
+/coworking-spaces/:id
+/coworking-spaces/:id/resources/new
+/coworking-resources/:id/availabilities/new
+/coworking-resources/:id/book
+/bookings
+```
+
+---
+
+# Booking User Flow
+
+```text
+Register
+    ↓
+Login
+    ↓
+Dashboard
+    ↓
+Coworking spaces
+    ↓
+Coworking space details
+    ↓
+Resource
+    ↓
+Add availability
+    ↓
+Availability displayed
+    ↓
+Book resource
+    ↓
+Create booking
+    ↓
+My bookings
+```
+
+Reusable page navigation also allows users to return to the dashboard from application pages.
+
+---
+
+# Authentication Architecture
+
+```text
+Request
     ↓
 Authorization: Bearer <token>
     ↓
-JWT authentication middleware
+JWT middleware
     ↓
 jwt.verify(...)
     ↓
-Authenticated user attached to req.user
+req.user
     ↓
 Protected controller
 ```
 
-Authentication and authorization are intentionally separated.
-
-Role-based authorization can therefore be added independently later.
+Authentication and authorization are intentionally separate concerns.
 
 ---
 
 # Frontend Authentication
 
-The frontend uses React Context to centralize authentication state.
+Authentication state is centralized through `AuthContext`.
 
-`AuthContext` manages:
+It manages:
 
 - authenticated user
 - JWT access token
@@ -928,47 +899,7 @@ The frontend uses React Context to centralize authentication state.
 - session restoration
 - authentication loading state
 
-The application avoids accessing `localStorage` directly throughout the component tree.
-
----
-
-## Session Restoration
-
-At application startup:
-
-```text
-Application starts
-    ↓
-Access token available?
-    ↓
-GET /api/auth/me
-    ↓
-Valid token?
-    ├── Yes → restore user
-    └── No  → clear local authentication state
-```
-
-The backend remains the source of truth for authentication.
-
----
-
-# Frontend Routes
-
-```text
-/login
-/register
-/dashboard
-/coworking-spaces
-/coworking-spaces/new
-/coworking-spaces/:id
-/coworking-spaces/:id/resources/new
-```
-
-Protected application routes redirect unauthenticated users to:
-
-```text
-/login
-```
+Protected React routes use `ProtectedRoute`.
 
 ---
 
@@ -977,36 +908,32 @@ Protected application routes redirect unauthenticated users to:
 - npm workspaces monorepo
 - React + TypeScript frontend
 - Express + TypeScript backend
-- PostgreSQL
-- Docker development environment
+- PostgreSQL database
+- Docker Compose development database
 - Prisma ORM
 - Shared TypeScript and Zod package
-- User registration
-- User login
+- Registration
+- Login
 - Argon2 password hashing
 - JWT authentication
-- Authenticated user endpoint
-- React authentication context
+- Authentication middleware
 - Session restoration
 - Protected frontend routes
 - Centralized API client
-- Coworking space model
-- Coworking spaces API
-- Coworking spaces frontend
-- Coworking resource model
+- Coworking space listing
+- Coworking space details
+- Coworking space creation
+- Coworking resource creation
 - Desk and meeting room resources
-- Coworking resource API
-- Coworking resource frontend
-- Resource availability model
-- Resource availability API
-- Availability validation
+- Resource availability display
+- Resource availability creation
 - Availability overlap prevention
-- Booking model
-- Shared booking validation
-- Booking creation API
-- Authenticated user booking history API
-- Availability-bound booking validation
+- Booking creation
+- Booking availability validation
 - Booking overlap prevention
+- My bookings page
+- Reusable page navigation
+- Dashboard navigation
 - GitHub Actions CI
 - Monorepo build pipeline
 
@@ -1014,18 +941,17 @@ Protected application routes redirect unauthenticated users to:
 
 # Planned Features
 
-- Booking frontend
 - Booking cancellation
-- Booking status management
-- Improved booking history UI
-- Improved authentication security using HTTP-only cookies
+- Booking status
 - User roles
 - Role-based authorization
 - Admin dashboard
+- Improved authentication using HTTP-only cookies
 - API documentation with Swagger / OpenAPI
 - Backend tests with Vitest and Supertest
 - Frontend tests
 - CI test pipeline
+- Stronger concurrent booking protection
 - Improved error handling
 - Deployment
 
@@ -1035,15 +961,15 @@ Protected application routes redirect unauthenticated users to:
 
 The current MVP stores the JWT access token in browser `localStorage`.
 
-This simplifies the initial authentication implementation but is not intended to be the final production authentication architecture.
+This simplifies the MVP authentication flow but is not intended as the final production security architecture.
 
-A future security improvement can migrate authentication to HTTP-only cookies to reduce direct JavaScript access to authentication tokens.
+A future improvement can use HTTP-only cookies to reduce direct JavaScript access to authentication tokens.
 
 ---
 
 # CI
 
-GitHub Actions runs CI for pushes and pull requests targeting:
+GitHub Actions runs for pushes and pull requests targeting:
 
 ```text
 develop
@@ -1064,7 +990,7 @@ Generate Prisma Client
 Build backend
 ```
 
-The complete monorepo should also build locally:
+Run locally with:
 
 ```bash
 npm run build
@@ -1073,8 +999,6 @@ npm run build
 ---
 
 # Git Workflow
-
-Development follows a feature-branch workflow.
 
 ```text
 feature/*
@@ -1088,92 +1012,44 @@ Pull Request
 main
 ```
 
-## Branches
+`main` remains stable.
 
-`main`
+`develop` is the integration branch.
 
-Stable production-ready branch.
-
-`develop`
-
-Integration branch for completed features.
-
-Feature branches:
-
-```text
-feature/<feature-name>
-```
-
-Other prefixes:
-
-```text
-fix/
-refactor/
-chore/
-```
+Feature branches should be short-lived and focused.
 
 ---
 
-# Commit Convention
-
-Conventional Commit-style messages are used when practical.
+## Commit Convention
 
 Examples:
 
 ```text
 feat: add booking API
-feat: add coworking resources frontend
+feat: complete booking frontend flow
 fix: handle invalid JWT
 refactor: centralize API requests
+docs: update MVP documentation
 chore: update CI configuration
-docs: update booking documentation
 ```
-
-Commits should remain focused and describe one logical change.
-
----
-
-# Pull Requests
-
-Feature branches should normally be merged into:
-
-```text
-develop
-```
-
-`main` remains stable.
-
-The first MVP target includes:
-
-- user registration
-- user login
-- coworking spaces
-- coworking resources
-- resource availability
-- basic booking functionality
-
-Once the booking frontend is completed and the MVP is verified, `develop` will be merged into `main`.
 
 ---
 
 # Code Quality Principles
 
-The project aims to follow:
-
 - separation of concerns
 - reusable components
-- centralized authentication
-- centralized API requests
-- shared frontend/backend schemas
-- backend as the source of truth
-- environment variables for configuration
-- no secrets committed to Git
 - strict TypeScript
-- explicit API error handling
-- small feature branches
-- focused commits
+- shared frontend/backend schemas
+- centralized authentication
+- centralized API calls
+- backend as source of truth
+- no secrets committed to Git
+- explicit error handling
+- small commits
+- feature branches
 - pull requests before integration
-- stable `main` branch
+- stable `main`
 
 ---
 
@@ -1185,40 +1061,29 @@ A license has not been selected yet.
 
 # Status
 
-🚧 Work in progress.
+✅ First MVP completed.
 
-Current milestone:
-
-```text
-Booking API
-```
-
-Completed:
+Completed flow:
 
 ```text
 Authentication
     ↓
-Coworking spaces API + frontend
+Coworking spaces
     ↓
-Coworking resources API + frontend
+Coworking resources
     ↓
-Resource availability API
+Resource availability
     ↓
-Booking API
+Booking
+    ↓
+My bookings
 ```
 
 Next milestone:
 
 ```text
-Booking frontend
-```
-
-After the booking frontend is complete and the MVP flow is validated:
-
-```text
-develop
-    ↓
-Pull Request
-    ↓
-main
+Testing
+Authorization
+Security hardening
+Production readiness
 ```

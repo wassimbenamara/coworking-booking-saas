@@ -4,10 +4,13 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import DashboardPage from "@/pages/DashboardPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
-import CoworkingSpacesPage from "./pages/CoworkingSpacesPage";
-import CoworkingSpaceDetailsPage from "./pages/CoworkingSpaceDetailsPage";
-import CreateCoworkingSpacePage from "./pages/CreateCoworkingSpacePage";
-import CreateCoworkingResourcePage from "./pages/CreateCoworkingResourcePage";
+import CoworkingSpacesPage from "@/pages/CoworkingSpacesPage";
+import CoworkingSpaceDetailsPage from "@/pages/CoworkingSpaceDetailsPage";
+import CreateCoworkingSpacePage from "@/pages/CreateCoworkingSpacePage";
+import CreateCoworkingResourcePage from "@/pages/CreateCoworkingResourcePage";
+import { CreateBookingPage } from "@/pages/CreateBookingPage";
+import BookingsPage from "@/pages/BookingsPage";
+import CreateResourceAvailabilityPage from "@/pages/CreateResourceAvailabilityPage";
 
 function App() {
   return (
@@ -31,6 +34,15 @@ function App() {
         <Route
           path="/coworking-spaces/:id/resources/new"
           element={<CreateCoworkingResourcePage />}
+        />
+        <Route
+          path="/coworking-resources/:id/book"
+          element={<CreateBookingPage />}
+        />
+        <Route path="/bookings" element={<BookingsPage />} />
+        <Route
+          path="/coworking-resources/:id/availabilities/new"
+          element={<CreateResourceAvailabilityPage />}
         />
       </Route>
     </Routes>
