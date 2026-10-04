@@ -415,6 +415,171 @@ Authorization: Bearer <access_token>
 
 ---
 
+# Resource Availability
+
+Resource availability defines the time ranges during which a coworking resource may be booked.
+
+All availability routes are protected by JWT authentication.
+
+Requests require:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+## List Resource Availabilities
+
+```http
+GET /api/coworking-resources/:resourceId/availabilities
+```
+
+Example:
+
+```http
+GET /api/coworking-resources/1/availabilities
+```
+
+Successful response:
+
+```http
+200 OK
+```
+
+Example response:
+
+```json
+{
+  "availabilities": [
+    {
+      "id": 1,
+      "resourceId": 1,
+      "startsAt": "2026-10-10T09:00:00.000Z",
+      "endsAt": "2026-10-10T18:00:00.000Z",
+      "createdAt": "2026-10-04T09:00:00.000Z",
+      "updatedAt": "2026-10-04T09:00:00.000Z"
+    }
+  ]
+}
+```
+
+Possible responses:
+
+```text
+200 OK
+400 Bad Request
+401 Unauthorized
+404 Not Found
+```
+
+---
+
+## Create Resource Availability
+
+```http
+POST /api/resource-availabilities
+```
+
+Example request:
+
+```json
+{
+  "resourceId": 1,
+  "startsAt": "2026-10-10T09:00:00.000Z",
+  "endsAt": "2026-10-10T18:00:00.000Z"
+}
+```
+
+Successful response:
+
+```http
+201 Created
+```
+
+Possible responses:
+
+```text
+201 Created
+400 Bad Request
+401 Unauthorized
+404 Not Found
+409 Conflict
+```
+
+### Validation
+
+The shared Zod schema validates:
+
+```text
+resourceId > 0
+startsAt = valid ISO datetime
+endsAt   = valid ISO datetime
+endsAt > startsAt
+```
+
+Invalid input returns:
+
+```http
+400 Bad Request
+```
+
+---
+
+## Resource Existence Validation
+
+Before creating an availability, the backend verifies that the referenced coworking resource exists.
+
+Unknown resource:
+
+```http
+404 Not Found
+```
+
+---
+
+## Availability Overlap Prevention
+
+The backend prevents overlapping availability ranges for the same resource.
+
+Overlap rule:
+
+```text
+existing.startsAt < new.endsAt
+AND
+existing.endsAt > new.startsAt
+```
+
+Allowed:
+
+```text
+09:00 → 12:00
+12:00 → 18:00
+```
+
+Rejected:
+
+```text
+09:00 → 12:00
+11:00 → 14:00
+```
+
+An overlapping range returns:
+
+```http
+409 Conflict
+```
+
+Example response:
+
+```json
+{
+  "message": "Availability overlaps an existing time range"
+}
+```
+
+---
+
 ## List Resources for a Coworking Space
 
 ```http
@@ -578,6 +743,7 @@ Current schemas include:
 auth.schema.ts
 coworking-space.schema.ts
 coworking-resource.schema.ts
+resource-availability.schema.ts
 ```
 
 Current code uses non-deprecated Zod error APIs such as:
@@ -656,6 +822,39 @@ Deleting a coworking space cascades to its resources.
 
 ---
 
+## ResourceAvailability
+
+```text
+id
+startsAt
+endsAt
+resourceId
+createdAt
+updatedAt
+```
+
+Relation:
+
+```text
+CoworkingResource 1
+        ↓
+        *
+ResourceAvailability
+```
+
+Each availability belongs to one coworking resource.
+
+The relation uses cascade deletion, so deleting a resource also removes its availability ranges.
+
+Indexes are defined for resource and time-range queries:
+
+```text
+resourceId
+resourceId + startsAt + endsAt
+```
+
+---
+
 # Project Structure
 
 ```text
@@ -672,6 +871,7 @@ backend/
 │   │   ├── auth.controller.ts
 │   │   ├── coworking-resource.controller.ts
 │   │   └── coworking-space.controller.ts
+|   │   └── resource-availability.controller.ts 
 │   │
 │   ├── generated/
 │   │   └── prisma/
@@ -685,11 +885,13 @@ backend/
 │   ├── routes/
 │   │   ├── auth.routes.ts
 │   │   ├── coworking-resource.routes.ts
+│   │   ├── resource-availability.routes.ts
 │   │   └── coworking-space.routes.ts
 │   │
 │   ├── services/
 │   │   ├── auth.service.ts
 │   │   ├── coworking-resource.service.ts
+│   │   ├── resource-availability.service.ts
 │   │   └── coworking-space.service.ts
 │   │
 │   ├── types/
@@ -710,6 +912,7 @@ packages/shared/src/schemas/
 ├── auth.schema.ts
 ├── coworking-resource.schema.ts
 └── coworking-space.schema.ts
+└── resource-availability.schema.ts
 ```
 
 ---
@@ -773,6 +976,14 @@ Prisma
 - Coworking resource details
 - Authenticated coworking resource creation
 - Parent coworking existence validation
+- ResourceAvailability database model
+- Shared availability validation schema
+- Protected availability routes
+- Resource availability listing
+- Authenticated availability creation
+- Resource existence validation
+- Availability date range validation
+- Availability overlap prevention
 
 ---
 
@@ -785,7 +996,6 @@ Prisma
 - Coworking resource deletion
 - Role management
 - Role-based authorization
-- Resource availability
 - Booking system
 - Booking conflict prevention
 - Swagger / OpenAPI documentation
@@ -800,11 +1010,11 @@ Prisma
 Current backend milestone:
 
 ```text
-Coworking resources API
+Resource availability API
 ```
 
 Next:
 
 ```text
-Coworking resources frontend
+Booking API
 ```

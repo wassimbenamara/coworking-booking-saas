@@ -49,4 +49,19 @@ model CoworkingResource {
   updatedAt        DateTime              @updatedAt
 
   coworkingSpace CoworkingSpace @relation(    fields: [coworkingSpaceId],    references: [id],    onDelete: Cascade  )
+  availabilities ResourceAvailability[]
+}
+
+model ResourceAvailability {
+  id         Int      @id @default(autoincrement())
+  startsAt   DateTime
+  endsAt     DateTime
+  resourceId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+resource CoworkingResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([resourceId])
+  @@index([resourceId, startsAt, endsAt])
 }
