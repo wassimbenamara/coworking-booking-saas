@@ -20,6 +20,7 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  bookings Booking[]
 }
 
 model CoworkingSpace {
@@ -47,6 +48,7 @@ model CoworkingResource {
   coworkingSpaceId Int
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
+  bookings Booking[]
 
   coworkingSpace CoworkingSpace @relation(    fields: [coworkingSpaceId],    references: [id],    onDelete: Cascade  )
   availabilities ResourceAvailability[]
@@ -62,6 +64,23 @@ model ResourceAvailability {
 
 resource CoworkingResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
+  @@index([resourceId])
+  @@index([resourceId, startsAt, endsAt])
+}
+
+model Booking {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  resourceId Int
+  startsAt   DateTime
+  endsAt     DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource CoworkingResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@index([resourceId])
   @@index([resourceId, startsAt, endsAt])
 }

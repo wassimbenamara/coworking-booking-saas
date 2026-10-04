@@ -1,8 +1,8 @@
-# Coworking Booking — Backend
+# Coworking Booking SaaS — Backend
 
-REST API for the Coworking Booking SaaS project.
+Backend API for the Coworking Booking SaaS application.
 
-The backend is part of an npm workspaces monorepo.
+The backend provides authentication, coworking space management, coworking resources, resource availability, and booking functionality.
 
 ---
 
@@ -15,58 +15,69 @@ The backend is part of an npm workspaces monorepo.
 - Prisma ORM
 - Zod
 - Argon2
-- JSON Web Tokens (JWT)
+- JSON Web Tokens
+- Prisma PostgreSQL adapter
 
 ---
 
-## Shared Package
-
-The backend uses:
+## Project Structure
 
 ```text
-@coworking/shared
+backend/
+├── prisma/
+│   ├── migrations/
+│   └── schema.prisma
+│
+├── src/
+│   ├── config/
+│   ├── controllers/
+│   │   ├── auth.controller.ts
+│   │   ├── booking.controller.ts
+│   │   ├── coworking-resource.controller.ts
+│   │   ├── coworking-space.controller.ts
+│   │   └── resource-availability.controller.ts
+│   │
+│   ├── generated/
+│   ├── lib/
+│   │   └── prisma.ts
+│   │
+│   ├── middlewares/
+│   │   └── auth.middleware.ts
+│   │
+│   ├── routes/
+│   │   ├── auth.routes.ts
+│   │   ├── booking.routes.ts
+│   │   ├── coworking-resource.routes.ts
+│   │   ├── coworking-space.routes.ts
+│   │   └── resource-availability.routes.ts
+│   │
+│   ├── services/
+│   │   ├── booking.service.ts
+│   │   ├── coworking-resource.service.ts
+│   │   ├── coworking-space.service.ts
+│   │   └── resource-availability.service.ts
+│   │
+│   └── types/
+│       └── express.d.ts
+│
+├── package.json
+└── README.md
 ```
 
-Shared schemas and TypeScript types are reused across the frontend and backend.
-
-Example:
-
-```ts
-import {
-  registerSchema,
-  loginSchema,
-  createCoworkingSpaceSchema,
-  createCoworkingResourceSchema,
-  type RegisterInput,
-  type LoginInput,
-  type CreateCoworkingSpaceInput,
-  type CreateCoworkingResourceInput,
-} from "@coworking/shared";
-```
-
-The backend remains the authoritative validation layer.
-
----
-
-## Installation
-
-Install dependencies from the repository root:
-
-```bash
-npm install
-```
-
-The monorepo uses a single root:
+Shared schemas are located at:
 
 ```text
-package-lock.json
+packages/shared/src/schemas/
+├── auth.schema.ts
+├── booking.schema.ts
+├── coworking-resource.schema.ts
+├── coworking-space.schema.ts
+└── resource-availability.schema.ts
 ```
-
-Do not create a separate backend lockfile.
 
 ---
 
-## Environment Variables
+# Environment Variables
 
 Create:
 
@@ -78,18 +89,17 @@ Example:
 
 ```env
 DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
-
-JWT_SECRET=your_jwt_secret
+JWT_SECRET=change_me_with_a_long_random_secret
 JWT_EXPIRES_IN=1h
 ```
 
-The `.env` file must not be committed.
+Never commit `.env` files.
 
 ---
 
-## Development
+# Development
 
-From the project root:
+From the repository root:
 
 ```bash
 npm run dev --workspace=backend
@@ -103,22 +113,16 @@ http://localhost:3000
 
 ---
 
-## Build
+# Build
 
-Build the backend:
-
-```bash
-npm run build:backend
-```
-
-If the shared package changed:
+From the repository root:
 
 ```bash
 npm run build:shared
 npm run build:backend
 ```
 
-Build the complete monorepo:
+Or build the complete monorepo:
 
 ```bash
 npm run build
@@ -126,73 +130,35 @@ npm run build
 
 ---
 
-## Start
-
-```bash
-npm run start --workspace=backend
-```
-
----
-
 # Prisma
 
-Prisma configuration:
-
-```text
-backend/prisma.config.ts
-```
-
-Prisma schema:
-
-```text
-backend/prisma/schema.prisma
-```
-
-Run Prisma commands from the backend directory:
-
-```bash
-cd backend
-```
-
-## Generate Prisma Client
-
-```bash
-npx prisma generate
-```
-
-## Validate Prisma Schema
+From the `backend` directory:
 
 ```bash
 npx prisma validate
 ```
 
-## Apply Development Migration
+Create a migration:
 
 ```bash
 npx prisma migrate dev --name <migration-name>
 ```
 
-Example:
+Generate Prisma Client:
 
 ```bash
-npx prisma migrate dev --name add_coworking_resources
+npx prisma generate
 ```
 
-## Prisma Studio
+Open Prisma Studio:
 
 ```bash
 npx prisma studio
 ```
 
-Return to the project root:
-
-```bash
-cd ..
-```
-
 ---
 
-# API Endpoints
+# API
 
 ## API Root
 
@@ -200,7 +166,7 @@ cd ..
 GET /
 ```
 
-Example response:
+Response:
 
 ```json
 {
@@ -216,7 +182,7 @@ Example response:
 GET /api/health
 ```
 
-Example response:
+Response:
 
 ```json
 {
@@ -235,14 +201,14 @@ Example response:
 POST /api/auth/register
 ```
 
-Example request:
+Example:
 
 ```json
 {
-  "firstName": "Wassim",
-  "lastName": "Ben Amara",
-  "email": "wassim@example.com",
-  "password": "StrongPassword123!"
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "password": "password123"
 }
 ```
 
@@ -254,6 +220,8 @@ Possible responses:
 409 Conflict
 ```
 
+Passwords are hashed using Argon2.
+
 ---
 
 ## Login
@@ -262,42 +230,28 @@ Possible responses:
 POST /api/auth/login
 ```
 
-Example request:
+Example:
 
 ```json
 {
-  "email": "wassim@example.com",
-  "password": "StrongPassword123!"
+  "email": "john@example.com",
+  "password": "password123"
 }
 ```
 
-Example response:
+Successful authentication returns the user and a JWT access token.
 
-```json
-{
-  "user": {
-    "id": 1,
-    "firstName": "Wassim",
-    "lastName": "Ben Amara",
-    "email": "wassim@example.com"
-  },
-  "accessToken": "<jwt-token>"
-}
-```
+Invalid credentials return:
 
-Possible responses:
-
-```text
-200 OK
-400 Bad Request
+```http
 401 Unauthorized
 ```
 
-The same credential error is returned for an unknown email and an incorrect password.
+The API deliberately uses the same response for unknown users and incorrect passwords to reduce account enumeration risks.
 
 ---
 
-## Current Authenticated User
+## Current User
 
 ```http
 GET /api/auth/me
@@ -309,70 +263,68 @@ Requires:
 Authorization: Bearer <access_token>
 ```
 
-Possible responses:
+Missing, expired, or invalid tokens return:
 
-```text
-200 OK
+```http
 401 Unauthorized
 ```
+
+---
+
+# JWT Authentication Middleware
+
+Protected routes use the authentication middleware.
+
+```text
+Request
+    ↓
+Authorization: Bearer <token>
+    ↓
+authenticate middleware
+    ↓
+jwt.verify(...)
+    ↓
+req.user
+    ↓
+Controller
+```
+
+The authenticated request contains:
+
+```ts
+req.user = {
+  id,
+  email,
+};
+```
+
+Controllers should derive the authenticated user's identity from `req.user` instead of request payloads.
 
 ---
 
 # Coworking Spaces
 
-All coworking space routes are protected.
+All coworking space endpoints are protected.
 
-The router applies:
-
-```ts
-router.use(authenticate);
-```
-
-Requests require:
-
-```http
-Authorization: Bearer <access_token>
-```
-
-## List Coworking Spaces
+## List
 
 ```http
 GET /api/coworking-spaces
 ```
 
-Possible responses:
-
-```text
-200 OK
-401 Unauthorized
-```
-
----
-
-## Get Coworking Space
+## Details
 
 ```http
 GET /api/coworking-spaces/:id
 ```
 
-Possible responses:
-
-```text
-200 OK
-400 Bad Request
-401 Unauthorized
-404 Not Found
-```
-
----
-
-## Create Coworking Space
+## Create
 
 ```http
 POST /api/coworking-spaces
 ```
 
-Example request:
+Example:
 
 ```json
 {
@@ -384,48 +336,57 @@ Example request:
 }
 ```
 
-Possible responses:
-
-```text
-201 Created
-400 Bad Request
-401 Unauthorized
-```
-
 ---
 
 # Coworking Resources
 
-Coworking resources are reservable entities that belong to a coworking space.
+A coworking space can contain bookable resources.
 
-Supported resource types:
+Supported types:
 
 ```text
 DESK
 MEETING_ROOM
 ```
 
-All resource routes are protected by JWT authentication.
-
-Requests require:
+## List Resources
 
 ```http
-Authorization: Bearer <access_token>
+GET /api/coworking-spaces/:coworkingSpaceId/resources
 ```
+
+## Resource Details
+
+```http
+GET /api/coworking-resources/:id
+```
+
+## Create Resource
+
+```http
+POST /api/coworking-resources
+```
+
+Example:
+
+```json
+{
+  "name": "Meeting Room A",
+  "type": "MEETING_ROOM",
+  "capacity": 6,
+  "coworkingSpaceId": 1
+}
+```
+
+The backend verifies that the referenced coworking space exists.
 
 ---
 
 # Resource Availability
 
-Resource availability defines the time ranges during which a coworking resource may be booked.
+Resource availability defines when a coworking resource can be booked.
 
-All availability routes are protected by JWT authentication.
-
-Requests require:
-
-```http
-Authorization: Bearer <access_token>
-```
+All availability routes require JWT authentication.
 
 ---
 
@@ -433,35 +394,6 @@ Authorization: Bearer <access_token>
 
 ```http
 GET /api/coworking-resources/:resourceId/availabilities
-```
-
-Example:
-
-```http
-GET /api/coworking-resources/1/availabilities
-```
-
-Successful response:
-
-```http
-200 OK
-```
-
-Example response:
-
-```json
-{
-  "availabilities": [
-    {
-      "id": 1,
-      "resourceId": 1,
-      "startsAt": "2026-10-10T09:00:00.000Z",
-      "endsAt": "2026-10-10T18:00:00.000Z",
-      "createdAt": "2026-10-04T09:00:00.000Z",
-      "updatedAt": "2026-10-04T09:00:00.000Z"
-    }
-  ]
-}
 ```
 
 Possible responses:
@@ -473,6 +405,10 @@ Possible responses:
 404 Not Found
 ```
 
+`400 Bad Request` is returned for an invalid resource ID.
+
+`404 Not Found` is returned when the resource does not exist.
+
 ---
 
 ## Create Resource Availability
@@ -481,7 +417,7 @@ Possible responses:
 POST /api/resource-availabilities
 ```
 
-Example request:
+Example:
 
 ```json
 {
@@ -489,12 +425,6 @@ Example request:
   "startsAt": "2026-10-10T09:00:00.000Z",
   "endsAt": "2026-10-10T18:00:00.000Z"
 }
-```
-
-Successful response:
-
-```http
-201 Created
 ```
 
 Possible responses:
@@ -507,7 +437,9 @@ Possible responses:
 409 Conflict
 ```
 
-### Validation
+---
+
+## Availability Validation
 
 The shared Zod schema validates:
 
@@ -518,19 +450,25 @@ endsAt   = valid ISO datetime
 endsAt > startsAt
 ```
 
-Invalid input returns:
+Invalid payloads return:
 
 ```http
 400 Bad Request
+```
+
+Zod validation errors are formatted with the Zod 4 API:
+
+```ts
+z.flattenError(validation.error)
 ```
 
 ---
 
 ## Resource Existence Validation
 
-Before creating an availability, the backend verifies that the referenced coworking resource exists.
+The backend verifies that the referenced coworking resource exists before creating an availability.
 
-Unknown resource:
+Unknown resources return:
 
 ```http
 404 Not Found
@@ -540,9 +478,9 @@ Unknown resource:
 
 ## Availability Overlap Prevention
 
-The backend prevents overlapping availability ranges for the same resource.
+Availability ranges cannot overlap for the same resource.
 
-Overlap rule:
+Rule:
 
 ```text
 existing.startsAt < new.endsAt
@@ -564,195 +502,170 @@ Rejected:
 11:00 → 14:00
 ```
 
-An overlapping range returns:
+Overlapping availability returns:
 
 ```http
 409 Conflict
 ```
 
-Example response:
+---
 
-```json
-{
-  "message": "Availability overlaps an existing time range"
-}
+# Booking
+
+The booking API allows authenticated users to reserve coworking resources.
+
+Every booking belongs to:
+
+```text
+User
+CoworkingResource
 ```
+
+The authenticated user is obtained from the JWT middleware.
+
+The API never accepts `userId` from the booking request body.
 
 ---
 
-## List Resources for a Coworking Space
+## List My Bookings
 
 ```http
-GET /api/coworking-spaces/:coworkingSpaceId/resources
+GET /api/bookings/me
 ```
 
-Example:
-
-```http
-GET /api/coworking-spaces/1/resources
-```
-
-Successful response:
-
-```http
-200 OK
-```
-
-Example response:
-
-```json
-{
-  "resources": [
-    {
-      "id": 1,
-      "name": "Desk A1",
-      "type": "DESK",
-      "capacity": 1,
-      "coworkingSpaceId": 1,
-      "createdAt": "2026-10-03T12:00:00.000Z",
-      "updatedAt": "2026-10-03T12:00:00.000Z"
-    }
-  ]
-}
-```
-
-Possible responses:
-
-```text
-200 OK
-400 Bad Request
-401 Unauthorized
-```
-
----
-
-## Get Coworking Resource by ID
-
-```http
-GET /api/coworking-resources/:id
-```
-
-Possible responses:
-
-```text
-200 OK
-400 Bad Request
-401 Unauthorized
-404 Not Found
-```
-
----
-
-## Create Coworking Resource
-
-```http
-POST /api/coworking-resources
-```
-
-Desk example:
-
-```json
-{
-  "name": "Desk A1",
-  "type": "DESK",
-  "capacity": 1,
-  "coworkingSpaceId": 1
-}
-```
-
-Meeting room example:
-
-```json
-{
-  "name": "Meeting Room Alpha",
-  "type": "MEETING_ROOM",
-  "capacity": 8,
-  "coworkingSpaceId": 1
-}
-```
-
-Successful response:
-
-```http
-201 Created
-```
-
-Possible responses:
-
-```text
-201 Created
-400 Bad Request
-401 Unauthorized
-404 Not Found
-```
-
-`404 Not Found` is returned when the referenced coworking space does not exist.
-
----
-
-# Authentication Architecture
-
-Passwords are hashed using Argon2.
-
-Successful login generates a JWT access token.
-
-Current JWT claims:
-
-```text
-sub
-email
-```
-
-`sub` contains the user ID.
-
-Passwords and other sensitive data are never stored in JWT payloads.
-
-Flow:
-
-```text
-HTTP request
-    ↓
-Authorization: Bearer <token>
-    ↓
-authenticate middleware
-    ↓
-JWT verification
-    ↓
-req.user
-    ↓
-protected controller
-```
-
-Authentication and authorization are treated as separate concerns.
-
----
-
-# Validation
-
-Request validation uses Zod.
-
-Shared schemas live in:
-
-```text
-packages/shared/src/schemas/
-```
-
-Current schemas include:
-
-```text
-auth.schema.ts
-coworking-space.schema.ts
-coworking-resource.schema.ts
-resource-availability.schema.ts
-```
-
-Current code uses non-deprecated Zod error APIs such as:
+Returns bookings belonging to:
 
 ```ts
-z.flattenError(validation.error)
+req.user.id
 ```
 
-The backend remains the final source of truth for validation.
+Possible responses:
+
+```text
+200 OK
+401 Unauthorized
+```
+
+---
+
+## Create Booking
+
+```http
+POST /api/bookings
+```
+
+Example request:
+
+```json
+{
+  "resourceId": 1,
+  "startsAt": "2026-10-10T10:00:00.000Z",
+  "endsAt": "2026-10-10T12:00:00.000Z"
+}
+```
+
+Successful response:
+
+```http
+201 Created
+```
+
+Possible responses:
+
+```text
+201 Created
+400 Bad Request
+401 Unauthorized
+404 Not Found
+409 Conflict
+```
+
+---
+
+## Booking Validation
+
+The shared Zod schema validates:
+
+```text
+resourceId > 0
+startsAt = valid ISO datetime
+endsAt   = valid ISO datetime
+endsAt > startsAt
+```
+
+Invalid input returns:
+
+```http
+400 Bad Request
+```
+
+---
+
+## Resource Validation
+
+The referenced resource must exist.
+
+Otherwise:
+
+```http
+404 Not Found
+```
+
+---
+
+## Availability Validation
+
+A booking must fit entirely inside an existing availability window.
+
+Rule:
+
+```text
+availability.startsAt <= booking.startsAt
+AND
+availability.endsAt >= booking.endsAt
+```
+
+A booking outside the resource availability returns:
+
+```http
+409 Conflict
+```
+
+---
+
+## Booking Conflict Prevention
+
+Bookings for the same resource cannot overlap.
+
+Rule:
+
+```text
+existing.startsAt < new.endsAt
+AND
+existing.endsAt > new.startsAt
+```
+
+Allowed:
+
+```text
+Booking A: 09:00 → 10:00
+Booking B: 10:00 → 11:00
+```
+
+Rejected:
+
+```text
+Booking A: 09:00 → 11:00
+Booking B: 10:00 → 12:00
+```
+
+Conflicting bookings return:
+
+```http
+409 Conflict
+```
+
+> The MVP performs conflict detection at application level. Stronger concurrency guarantees can later be implemented using PostgreSQL transactions, locking, or database-level exclusion constraints.
 
 ---
 
@@ -762,15 +675,22 @@ The backend remains the final source of truth for validation.
 
 ```text
 id
-email
 firstName
 lastName
-password
+email
+passwordHash
 createdAt
 updatedAt
 ```
 
-Passwords are stored as Argon2 hashes.
+Relationship:
+
+```text
+User 1
+  ↓
+  *
+Booking
+```
 
 ---
 
@@ -785,7 +705,15 @@ city
 country
 createdAt
 updatedAt
-resources[]
+```
+
+Relationship:
+
+```text
+CoworkingSpace 1
+      ↓
+      *
+CoworkingResource
 ```
 
 ---
@@ -802,23 +730,35 @@ createdAt
 updatedAt
 ```
 
-Type:
+Supported types:
 
 ```text
 DESK
 MEETING_ROOM
 ```
 
-Relation:
+Relationships:
 
 ```text
-CoworkingSpace 1
+CoworkingSpace
+      1
       ↓
       *
 CoworkingResource
+      1
+      ↓
+      *
+ResourceAvailability
 ```
 
-Deleting a coworking space cascades to its resources.
+and:
+
+```text
+CoworkingResource 1
+        ↓
+        *
+Booking
+```
 
 ---
 
@@ -842,11 +782,9 @@ CoworkingResource 1
 ResourceAvailability
 ```
 
-Each availability belongs to one coworking resource.
+Deleting a coworking resource also deletes its availability ranges.
 
-The relation uses cascade deletion, so deleting a resource also removes its availability ranges.
-
-Indexes are defined for resource and time-range queries:
+Indexes:
 
 ```text
 resourceId
@@ -855,151 +793,171 @@ resourceId + startsAt + endsAt
 
 ---
 
-# Project Structure
+## Booking
 
 ```text
-backend/
-├── prisma/
-│   ├── migrations/
-│   └── schema.prisma
-│
-├── src/
-│   ├── config/
-│   │   └── auth.config.ts
-│   │
-│   ├── controllers/
-│   │   ├── auth.controller.ts
-│   │   ├── coworking-resource.controller.ts
-│   │   └── coworking-space.controller.ts
-|   │   └── resource-availability.controller.ts 
-│   │
-│   ├── generated/
-│   │   └── prisma/
-│   │
-│   ├── lib/
-│   │   └── prisma.ts
-│   │
-│   ├── middlewares/
-│   │   └── auth.middleware.ts
-│   │
-│   ├── routes/
-│   │   ├── auth.routes.ts
-│   │   ├── coworking-resource.routes.ts
-│   │   ├── resource-availability.routes.ts
-│   │   └── coworking-space.routes.ts
-│   │
-│   ├── services/
-│   │   ├── auth.service.ts
-│   │   ├── coworking-resource.service.ts
-│   │   ├── resource-availability.service.ts
-│   │   └── coworking-space.service.ts
-│   │
-│   ├── types/
-│   │   └── express.d.ts
-│   │
-│   └── server.ts
-│
-├── .env.example
-├── prisma.config.ts
-├── package.json
-└── tsconfig.json
+id
+userId
+resourceId
+startsAt
+endsAt
+createdAt
+updatedAt
 ```
 
-Shared schemas:
+Relationships:
+
+```text
+User 1
+  ↓
+  *
+Booking
+```
+
+```text
+CoworkingResource 1
+        ↓
+        *
+Booking
+```
+
+Indexes:
+
+```text
+userId
+resourceId
+resourceId + startsAt + endsAt
+```
+
+---
+
+# Validation
+
+Validation schemas are shared between workspaces through:
+
+```text
+@coworking/shared
+```
+
+Current schemas:
 
 ```text
 packages/shared/src/schemas/
 ├── auth.schema.ts
+├── booking.schema.ts
 ├── coworking-resource.schema.ts
-└── coworking-space.schema.ts
+├── coworking-space.schema.ts
 └── resource-availability.schema.ts
 ```
+
+This keeps request validation consistent and avoids duplicated business contracts.
 
 ---
 
 # Architecture
 
-Backend features follow:
+The backend separates responsibilities between layers.
 
 ```text
 Route
-    ↓
+  ↓
+Authentication middleware
+  ↓
 Controller
-    ↓
+  ↓
 Service
-    ↓
+  ↓
 Prisma
-    ↓
+  ↓
 PostgreSQL
 ```
 
 Responsibilities:
 
 ```text
-Route
-→ HTTP endpoint and middleware declaration
+Routes
+→ HTTP routing
 
-Controller
-→ HTTP request/response handling and validation
+Middleware
+→ authentication
 
-Service
-→ domain and persistence operations
+Controllers
+→ request validation and HTTP responses
+
+Services
+→ business logic and database access
+
+Shared schemas
+→ API contracts and input validation
 
 Prisma
-→ database access
+→ persistence
 ```
 
 ---
 
 # Current Features
 
-- Express REST API
-- TypeScript configuration
-- PostgreSQL database
+- Express + TypeScript API
+- PostgreSQL
 - Prisma ORM
-- Database migrations
-- Shared Zod validation
+- Prisma PostgreSQL adapter
+- Shared Zod schemas
 - User registration
-- User login
 - Argon2 password hashing
-- JWT access tokens
-- JWT authentication middleware
-- Protected backend routes
-- Authenticated current-user endpoint
-- CoworkingSpace database model
-- Protected coworking space listing
-- Protected coworking space details
-- Authenticated coworking space creation
-- CoworkingResource database model
-- Coworking resource enum
-- Coworking resource listing
-- Coworking resource details
-- Authenticated coworking resource creation
-- Parent coworking existence validation
-- ResourceAvailability database model
-- Shared availability validation schema
+- User login
+- JWT authentication
+- Authentication middleware
+- Authenticated user endpoint
+- Coworking space API
+- Coworking resource API
+- Resource availability model
 - Protected availability routes
-- Resource availability listing
-- Authenticated availability creation
+- Availability creation
 - Resource existence validation
-- Availability date range validation
+- Availability date validation
 - Availability overlap prevention
+- Booking model
+- Shared booking schema
+- Authenticated booking creation
+- Authenticated user booking history
+- Booking availability validation
+- Booking overlap prevention
 
 ---
 
 # Planned Features
 
-- Coworking resource frontend
-- Coworking space update
-- Coworking space deletion
-- Coworking resource update
-- Coworking resource deletion
+- Booking cancellation
+- Booking status
 - Role management
 - Role-based authorization
-- Booking system
-- Booking conflict prevention
+- Admin endpoints
 - Swagger / OpenAPI documentation
-- Backend tests with Vitest and Supertest
+- Automated backend tests with Vitest and Supertest
+- Stronger concurrent booking conflict protection
+- Improved error handling
+- Deployment configuration
+
+---
+
+# Security Notes
+
+Passwords are stored as Argon2 hashes.
+
+JWT secrets are stored through environment variables.
+
+Protected endpoints require Bearer authentication:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+The authenticated user identity comes from the verified JWT.
+
+Sensitive identifiers such as a booking `userId` are not trusted from client input.
+
+Authentication and authorization are kept as separate concerns.
 
 ---
 
@@ -1010,11 +968,25 @@ Prisma
 Current backend milestone:
 
 ```text
+Booking API
+```
+
+Completed:
+
+```text
+Authentication API
+    ↓
+Coworking spaces API
+    ↓
+Coworking resources API
+    ↓
 Resource availability API
+    ↓
+Booking API
 ```
 
 Next:
 
 ```text
-Booking API
+Booking frontend
 ```

@@ -21,3 +21,8 @@ export {
   createResourceAvailabilitySchema,
   type CreateResourceAvailabilityInput,
 } from "./resource-availability.schema.js";
+
+export {
+  createBookingSchema,
+  type CreateBookingInput,
+} from "./booking.schema.js";
