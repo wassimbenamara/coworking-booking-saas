@@ -3,6 +3,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import coworkingSpaceRoutes from "./routes/coworking-space.routes.js";
 import coworkingResourceRoutes from "./routes/coworking-resource.routes.js";
+import resourceAvailabilityRoutes from "./routes/resource-availability.routes.js";
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -21,6 +22,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/coworking-spaces", coworkingSpaceRoutes);
 app.use("/api", coworkingResourceRoutes);
+app.use("/api", resourceAvailabilityRoutes);
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

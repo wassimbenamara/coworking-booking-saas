@@ -627,6 +627,145 @@ A `404 Not Found` is returned when the referenced coworking space does not exist
 
 ---
 
+# Resource Availability
+
+Resource availability defines the time ranges during which a coworking resource can be booked.
+
+Availability is attached to a specific `CoworkingResource`.
+
+All availability endpoints require authentication.
+
+Requests must include:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+## List Resource Availabilities
+
+```http
+GET /api/coworking-resources/:resourceId/availabilities
+```
+
+Example:
+
+```http
+GET /api/coworking-resources/1/availabilities
+```
+
+Successful response:
+
+```http
+200 OK
+```
+
+Example response:
+
+```json
+{
+  "availabilities": [
+    {
+      "id": 1,
+      "resourceId": 1,
+      "startsAt": "2026-10-10T09:00:00.000Z",
+      "endsAt": "2026-10-10T18:00:00.000Z",
+      "createdAt": "2026-10-04T09:00:00.000Z",
+      "updatedAt": "2026-10-04T09:00:00.000Z"
+    }
+  ]
+}
+```
+
+Possible responses:
+
+```text
+200 OK
+400 Bad Request
+401 Unauthorized
+404 Not Found
+```
+
+`400 Bad Request` is returned when the resource ID is invalid.
+
+`404 Not Found` is returned when the coworking resource does not exist.
+
+---
+
+## Create Resource Availability
+
+```http
+POST /api/resource-availabilities
+```
+
+Example request:
+
+```json
+{
+  "resourceId": 1,
+  "startsAt": "2026-10-10T09:00:00.000Z",
+  "endsAt": "2026-10-10T18:00:00.000Z"
+}
+```
+
+Successful response:
+
+```http
+201 Created
+```
+
+Possible responses:
+
+```text
+201 Created
+400 Bad Request
+401 Unauthorized
+404 Not Found
+409 Conflict
+```
+
+Validation rules:
+
+- `resourceId` must be a positive integer
+- `startsAt` must be a valid ISO datetime
+- `endsAt` must be a valid ISO datetime
+- `endsAt` must be after `startsAt`
+
+A `404 Not Found` response is returned when the referenced coworking resource does not exist.
+
+A `409 Conflict` response is returned when the new availability overlaps an existing availability for the same resource.
+
+---
+
+## Availability Overlap Prevention
+
+Two availability ranges overlap when:
+
+```text
+existing.startsAt < new.endsAt
+AND
+existing.endsAt > new.startsAt
+```
+
+Example of an allowed configuration:
+
+```text
+09:00 → 12:00
+12:00 → 18:00
+```
+
+Example of a rejected overlap:
+
+```text
+09:00 → 12:00
+11:00 → 14:00
+```
+
+This prevents conflicting availability windows from being stored for the same resource.
+
+---
+
 # Authentication Middleware
 
 Protected backend routes use JWT authentication middleware.
@@ -868,6 +1007,31 @@ CoworkingSpace
 CoworkingResource
 ```
 
+## ResourceAvailability
+
+```text
+id
+startsAt
+endsAt
+resourceId
+createdAt
+updatedAt
+```
+
+Relationship:
+
+```text
+CoworkingResource
+      1
+      ↓
+      *
+ResourceAvailability
+```
+
+Each availability belongs to one coworking resource.
+
+Deleting a coworking resource also deletes its availability ranges.
+
 ---
 
 # Current Features
@@ -907,6 +1071,13 @@ CoworkingResource
 - Authenticated coworking resource creation
 - GitHub Actions CI
 - Monorepo build pipeline
+- Resource availability data model
+- Shared resource availability validation schema
+- Protected resource availability API
+- Resource availability listing
+- Authenticated resource availability creation
+- Availability date range validation
+- Availability overlap prevention
 
 ---
 
@@ -917,7 +1088,6 @@ CoworkingResource
 - Coworking resource update and deletion
 - Role-based authorization
 - User roles
-- Resource availability
 - Booking creation
 - Booking cancellation
 - Booking history
@@ -1092,7 +1262,7 @@ Once the first MVP is complete, `develop` will be merged into `main`.
 Current milestone:
 
 ```text
-Coworking resources frontend
+Resource availability
 ```
 
 Completed:
@@ -1100,17 +1270,15 @@ Completed:
 ```text
 Authentication
     ↓
-Coworking spaces API
+Coworking spaces
     ↓
-Coworking spaces frontend
+Coworking resources
     ↓
-Coworking resources API
-    ↓
-Coworking resources frontend
+Resource availability
 ```
 
 Next milestone:
 
 ```text
-Resource availability and booking
+Booking
 ```

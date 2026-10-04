@@ -16,3 +16,8 @@ export {
   type CoworkingResourceType,
   type CreateCoworkingResourceInput,
 } from "./coworking-resource.schema.js";
+
+export {
+  createResourceAvailabilitySchema,
+  type CreateResourceAvailabilityInput,
+} from "./resource-availability.schema.js";
