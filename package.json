@@ -1,0 +1,16 @@
+{
+  "name": "@coworking/shared",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:shared": "npm run build --workspace=@coworking/shared",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build": "npm run build:shared && npm run build:frontend && npm run build:backend"
+  }
+}
