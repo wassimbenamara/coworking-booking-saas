@@ -58,7 +58,10 @@ describe("Authentication", () => {
 
     expect(user.password).not.toBe(testPassword);
 
-    const passwordMatches = await argon2.verify(user.password, testPassword);
+    const passwordMatches = await argon2.verify(
+      user.password,
+      testPassword,
+    );
 
     expect(passwordMatches).toBe(true);
   });
@@ -71,8 +74,58 @@ describe("Authentication", () => {
       password: testPassword,
     };
 
-    await request(app).post("/api/auth/register").send(payload).expect(201);
+    await request(app)
+      .post("/api/auth/register")
+      .send(payload)
+      .expect(201);
 
-    await request(app).post("/api/auth/register").send(payload).expect(409);
+    await request(app)
+      .post("/api/auth/register")
+      .send(payload)
+      .expect(409);
+  });
+
+  it("POST /api/auth/login returns a token with valid credentials", async () => {
+    await request(app)
+      .post("/api/auth/register")
+      .send({
+        firstName: "Integration",
+        lastName: "Test",
+        email: testEmail,
+        password: testPassword,
+      })
+      .expect(201);
+
+    const response = await request(app)
+      .post("/api/auth/login")
+      .send({
+        email: testEmail,
+        password: testPassword,
+      })
+      .expect(200);
+
+    expect(response.body).toHaveProperty("accessToken");
+    expect(typeof response.body.accessToken).toBe("string");
+    expect(response.body.accessToken.length).toBeGreaterThan(0);
+  });
+
+  it("POST /api/auth/login returns 401 with invalid credentials", async () => {
+    await request(app)
+      .post("/api/auth/register")
+      .send({
+        firstName: "Integration",
+        lastName: "Test",
+        email: testEmail,
+        password: testPassword,
+      })
+      .expect(201);
+
+    await request(app)
+      .post("/api/auth/login")
+      .send({
+        email: testEmail,
+        password: "wrong-password",
+      })
+      .expect(401);
   });
 });

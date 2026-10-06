@@ -918,9 +918,15 @@ npm test --workspace=backend
 
 Current test coverage includes:
 
+Current test coverage includes:
+
 - API root
 - health check
 - protected route rejection without JWT
+- user registration
+- duplicate registration prevention
+- successful user login
+- invalid login credentials
 
 
 ## Test Database
