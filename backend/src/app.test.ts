@@ -24,4 +24,11 @@ describe("Application", () => {
       message: "Coworking Booking API",
     });
   });
+
+
+  it("GET /api/bookings/me returns 401 without authentication", async () => {
+  await request(app)
+    .get("/api/bookings/me")
+    .expect(401);
+});
 });

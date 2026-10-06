@@ -914,6 +914,12 @@ Run the test suite:
 npm test --workspace=backend
 ```
 
+Current test coverage includes:
+
+- API root
+- health check
+- protected route rejection without JWT
+
 ---
 
 # Status
