@@ -907,6 +907,8 @@ Backend tests use:
 
 - Vitest
 - Supertest
+- a dedicated PostgreSQL test database
+
 
 Run the test suite:
 
@@ -919,6 +921,30 @@ Current test coverage includes:
 - API root
 - health check
 - protected route rejection without JWT
+
+
+## Test Database
+
+Backend integration tests use a dedicated PostgreSQL database to avoid modifying development data.
+
+Test environment variables are stored in:
+
+```text
+backend/.env.test
+```
+
+Example:
+```text
+DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_test_db?schema=public"
+JWT_SECRET=test_secret_key
+JWT_EXPIRES_IN=1h
+```
+
+Tests are executed with .env.test loaded:
+```bash
+npm test --workspace=backend
+```
+
 
 ---
 

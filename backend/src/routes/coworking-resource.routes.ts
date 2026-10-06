@@ -14,11 +14,13 @@ router.use(authenticate);
 
 router.get(
   "/coworking-spaces/:coworkingSpaceId/resources",
+  authenticate,
   listCoworkingResources
 );
 
 router.get(
   "/coworking-resources/:id",
+  authenticate,
   getCoworkingResource
 );
 
