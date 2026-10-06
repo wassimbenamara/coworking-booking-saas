@@ -901,6 +901,21 @@ Authentication and authorization remain separate concerns.
 
 ---
 
+# Testing
+
+Backend tests use:
+
+- Vitest
+- Supertest
+
+Run the test suite:
+
+```bash
+npm test --workspace=backend
+```
+
+---
+
 # Status
 
 ✅ First backend MVP completed.
