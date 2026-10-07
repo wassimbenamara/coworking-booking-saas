@@ -35,4 +35,13 @@ describe("Application", () => {
 
     expect(response.headers).toHaveProperty("x-frame-options");
   });
+
+  it("returns 404 for unknown API routes", async () => {
+    const response = await request(app).get("/api/unknown-route").expect(404);
+
+    expect(response.body).toMatchObject({
+      message: "Route not found",
+      path: "/api/unknown-route",
+    });
+  });
 });

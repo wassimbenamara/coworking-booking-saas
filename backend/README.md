@@ -160,7 +160,34 @@ Allowed frontend origins are configured with:
 
 ```env
 CORS_ORIGINS=http://localhost:5173
+```
 
+
+---
+
+## Error Handling
+
+The backend uses centralized Express error handling.
+
+Unknown API routes return:
+
+```text
+404 Not Found
+```
+
+Example:
+{
+  "message": "Route not found",
+  "path": "/api/unknown-route"
+}
+
+Unexpected server errors are handled by a global error middleware and return:
+500 Internal Server Error
+
+Example:
+{
+  "message": "Internal server error"
+}
 
 ---
 
@@ -897,6 +924,9 @@ Common API responses include:
 - Booking availability validation
 - Booking overlap prevention
 - Authenticated user booking history
+- centralized API error handling
+- 404 fallback handler
+- global 500 error handler
 
 ---
 
@@ -913,6 +943,7 @@ Common API responses include:
 - Centralized error middleware
 - Structured logging
 - Deployment configuration
+- Centralized error middleware
 
 ---
 
@@ -970,6 +1001,7 @@ Current test coverage includes:
 - user-specific booking isolation
 - invalid booking payload rejection
 - invalid availability payload rejection
+- unknown API route handling
 
 ## Test Database
 

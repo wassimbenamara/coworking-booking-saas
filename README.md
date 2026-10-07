@@ -954,6 +954,9 @@ Protected React routes use `ProtectedRoute`.
 - GitHub Actions CI
 - Monorepo build pipeline
 - Backend tests with Vitest and Supertest
+- centralized API error handling
+- 404 API fallback handler
+- global 500 error handler
 
 ---
 
@@ -968,7 +971,6 @@ Protected React routes use `ProtectedRoute`.
 - API documentation with Swagger / OpenAPI
 - Frontend tests
 - Stronger concurrent booking protection
-- Improved error handling
 - Deployment
 
 ---
@@ -1066,6 +1068,7 @@ chore: update CI configuration
 - feature branches
 - pull requests before integration
 - stable `main`
+- centralized API error handling
 
 ---
 

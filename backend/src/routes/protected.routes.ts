@@ -9,10 +9,17 @@ import resourceAvailabilityRoutes from "./resource-availability.routes.js";
 
 const router = Router();
 
-router.use(authenticate);
+router.use(
+  [
+    "/coworking-spaces",
+    "/coworking-resources",
+    "/resource-availabilities",
+    "/bookings",
+  ],
+  authenticate,
+);
 
 router.use("/coworking-spaces", coworkingSpaceRoutes);
-
 router.use(coworkingResourceRoutes);
 router.use(resourceAvailabilityRoutes);
 router.use(bookingRoutes);
