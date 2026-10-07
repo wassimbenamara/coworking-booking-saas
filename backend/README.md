@@ -927,6 +927,8 @@ Current test coverage includes:
 - duplicate registration prevention
 - successful user login
 - invalid login credentials
+- resource availability creation
+- overlapping availability rejection
 
 
 ## Test Database
