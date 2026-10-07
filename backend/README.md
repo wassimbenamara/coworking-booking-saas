@@ -127,6 +127,22 @@ Or:
 npm run build
 ```
 
+## Continuous Integration
+
+Backend integration tests run automatically in GitHub Actions.
+
+The CI workflow:
+
+- starts a dedicated PostgreSQL test database
+- installs dependencies with `npm ci`
+- builds the shared package
+- generates the Prisma client
+- applies Prisma migrations
+- builds the backend
+- runs the backend integration test suite
+
+CI environment variables are provided directly by GitHub Actions and do not rely on the local `.env.test` file.
+
 ---
 
 # Prisma

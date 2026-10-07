@@ -45,6 +45,18 @@ The project is built as an npm workspaces monorepo with a React frontend, Node.j
 
 ---
 
+## Quality & CI
+
+The project includes:
+
+- GitHub Actions CI
+- automated monorepo builds
+- PostgreSQL service for backend integration tests
+- Prisma migration validation in CI
+- automated backend integration tests with Vitest and Supertest
+
+---
+
 ## Project Structure
 
 ```text
@@ -1082,7 +1094,6 @@ My bookings
 Next milestone:
 
 ```text
-Testing
 Authorization
 Security hardening
 Production readiness
