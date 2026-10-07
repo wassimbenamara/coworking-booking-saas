@@ -128,4 +128,44 @@ describe("Authentication", () => {
       })
       .expect(401);
   });
+
+  it("GET /api/auth/me returns the authenticated user", async () => {
+  await request(app)
+    .post("/api/auth/register")
+    .send({
+      firstName: "Integration",
+      lastName: "Test",
+      email: testEmail,
+      password: testPassword,
+    })
+    .expect(201);
+
+  const loginResponse = await request(app)
+    .post("/api/auth/login")
+    .send({
+      email: testEmail,
+      password: testPassword,
+    })
+    .expect(200);
+
+  const accessToken = loginResponse.body.accessToken;
+
+  expect(typeof accessToken).toBe("string");
+  expect(accessToken.length).toBeGreaterThan(0);
+
+  const response = await request(app)
+    .get("/api/auth/me")
+    .set("Authorization", `Bearer ${accessToken}`)
+    .expect(200);
+    
+
+    expect(response).not.toBeNull();
+expect(response.body.user).toMatchObject({
+  email: testEmail,
+});
+
+expect(typeof response.body.user.id).toBe("number");
+
+  expect(response.body).not.toHaveProperty("password");
+});
 });
