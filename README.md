@@ -948,6 +948,7 @@ Protected React routes use `ProtectedRoute`.
 - Dashboard navigation
 - GitHub Actions CI
 - Monorepo build pipeline
+- Backend tests with Vitest and Supertest
 
 ---
 
@@ -960,7 +961,6 @@ Protected React routes use `ProtectedRoute`.
 - Admin dashboard
 - Improved authentication using HTTP-only cookies
 - API documentation with Swagger / OpenAPI
-- Backend tests with Vitest and Supertest
 - Frontend tests
 - CI test pipeline
 - Stronger concurrent booking protection

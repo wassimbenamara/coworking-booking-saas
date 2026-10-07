@@ -107,5 +107,19 @@ describe("Resource availability", () => {
         })
             .expect(409);
     });
+    it("POST /api/resource-availabilities returns 400 for invalid payload", async () => {
+        const { accessToken } = await createAuthenticatedTestUser({
+            email: testEmail,
+        });
+        await request(app)
+            .post("/api/resource-availabilities")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({
+            resourceId: -1,
+            startsAt: "invalid-date",
+            endsAt: "invalid-date",
+        })
+            .expect(400);
+    });
 });
 //# sourceMappingURL=resource-availability.test.js.map

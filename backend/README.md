@@ -934,23 +934,23 @@ npm test --workspace=backend
 
 Current test coverage includes:
 
-Current test coverage includes:
-
-- API root
-- health check
-- protected route rejection without JWT
-- user registration
+- API root and health check
+- authentication and registration
 - duplicate registration prevention
-- successful user login
-- invalid login credentials
+- successful and invalid login
+- authenticated current-user retrieval
+- protected route rejection without JWT
+- invalid JWT rejection
+- coworking space creation and listing
+- coworking resource creation and listing
 - resource availability creation
 - overlapping availability rejection
 - booking creation inside availability
 - booking rejection outside availability
 - overlapping booking rejection
-- coworking space creation and listing
-- coworking resource creation and listing
-
+- user-specific booking isolation
+- invalid booking payload rejection
+- invalid availability payload rejection
 
 ## Test Database
 
