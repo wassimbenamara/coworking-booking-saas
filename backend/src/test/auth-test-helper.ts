@@ -10,11 +10,9 @@ interface CreateAuthenticatedTestUserOptions {
 export async function createAuthenticatedTestUser(
   options: CreateAuthenticatedTestUserOptions = {},
 ) {
-  const email =
-    options.email ?? "authenticated-test-user@example.com";
+  const email = options.email ?? "authenticated-test-user@example.com";
 
-  const password =
-    options.password ?? "password123";
+  const password = options.password ?? "password123";
 
   await request(app)
     .post("/api/auth/register")
@@ -36,13 +34,8 @@ export async function createAuthenticatedTestUser(
 
   const accessToken = loginResponse.body.accessToken;
 
-  if (
-    typeof accessToken !== "string" ||
-    accessToken.length === 0
-  ) {
-    throw new Error(
-      "Expected login response to contain an access token",
-    );
+  if (typeof accessToken !== "string" || accessToken.length === 0) {
+    throw new Error("Expected login response to contain an access token");
   }
 
   return {

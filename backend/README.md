@@ -929,6 +929,9 @@ Current test coverage includes:
 - invalid login credentials
 - resource availability creation
 - overlapping availability rejection
+- booking creation inside availability
+- booking rejection outside availability
+- overlapping booking rejection
 
 
 ## Test Database
