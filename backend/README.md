@@ -143,6 +143,25 @@ The CI workflow:
 
 CI environment variables are provided directly by GitHub Actions and do not rely on the local `.env.test` file.
 
+
+## Security
+
+The backend includes several HTTP security protections:
+
+- Helmet security headers
+- configurable CORS origin allowlist
+- authentication rate limiting
+- JWT-protected application routes
+- Zod request validation
+
+Authentication endpoints are rate-limited to reduce brute-force and credential-stuffing attempts.
+
+Allowed frontend origins are configured with:
+
+```env
+CORS_ORIGINS=http://localhost:5173
+
+
 ---
 
 # Prisma

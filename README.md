@@ -54,6 +54,10 @@ The project includes:
 - PostgreSQL service for backend integration tests
 - Prisma migration validation in CI
 - automated backend integration tests with Vitest and Supertest
+- HTTP security headers with Helmet
+- configurable CORS policy
+- authentication rate limiting
+
 
 ---
 
@@ -179,6 +183,7 @@ Example:
 DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
 JWT_SECRET=change_me_with_a_long_random_secret
 JWT_EXPIRES_IN=1h
+CORS_ORIGINS=http://localhost:5173
 ```
 
 ### Frontend
@@ -962,7 +967,6 @@ Protected React routes use `ProtectedRoute`.
 - Improved authentication using HTTP-only cookies
 - API documentation with Swagger / OpenAPI
 - Frontend tests
-- CI test pipeline
 - Stronger concurrent booking protection
 - Improved error handling
 - Deployment
