@@ -20,8 +20,7 @@ export async function createAuthenticatedTestUser(options = {}) {
     })
         .expect(200);
     const accessToken = loginResponse.body.accessToken;
-    if (typeof accessToken !== "string" ||
-        accessToken.length === 0) {
+    if (typeof accessToken !== "string" || accessToken.length === 0) {
         throw new Error("Expected login response to contain an access token");
     }
     return {

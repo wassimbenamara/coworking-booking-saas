@@ -932,6 +932,8 @@ Current test coverage includes:
 - booking creation inside availability
 - booking rejection outside availability
 - overlapping booking rejection
+- coworking space creation and listing
+- coworking resource creation and listing
 
 
 ## Test Database

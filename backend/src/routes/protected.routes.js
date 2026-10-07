@@ -6,7 +6,7 @@ import coworkingSpaceRoutes from "./coworking-space.routes.js";
 import resourceAvailabilityRoutes from "./resource-availability.routes.js";
 const router = Router();
 router.use(authenticate);
-router.use(coworkingSpaceRoutes);
+router.use("/coworking-spaces", coworkingSpaceRoutes);
 router.use(coworkingResourceRoutes);
 router.use(resourceAvailabilityRoutes);
 router.use(bookingRoutes);
