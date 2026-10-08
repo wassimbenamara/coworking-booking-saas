@@ -1,16 +1,17 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { registerSchema } from "@coworking/shared";
 import { registerUser } from "../services/auth.service.js";
 import { loginSchema } from "@coworking/shared";
 import { loginUser } from "../services/auth.service.js";
+import z from "zod";
 
-export async function register(req: Request, res: Response) {
+export async function register(req: Request, res: Response, next:NextFunction) {
   const validation = registerSchema.safeParse(req.body);
 
   if (!validation.success) {
     return res.status(400).json({
       message: "Invalid request data",
-      errors: validation.error.flatten(),
+      errors:z.flattenError(validation.error),
     });
   }
 
@@ -25,19 +26,18 @@ export async function register(req: Request, res: Response) {
       });
     }
 
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+    next(error);
+ 
   }
 }
 
-export async function login(req: Request, res: Response) {
+export async function login(req: Request, res: Response, next:NextFunction) {
   const validation = loginSchema.safeParse(req.body);
 
   if (!validation.success) {
     return res.status(400).json({
       message: "Invalid request data",
-      errors: validation.error.flatten(),
+      errors: z.flattenError(validation.error),
     });
   }
 
@@ -52,9 +52,7 @@ export async function login(req: Request, res: Response) {
       });
     }
 
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+    next(error);
   }
 }
 

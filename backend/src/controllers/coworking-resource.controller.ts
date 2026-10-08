@@ -1,12 +1,10 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import z from "zod";
 
-import {
-  createCoworkingResourceSchema,
-} from "@coworking/shared";
+import { createCoworkingResourceSchema } from "@coworking/shared";
 
 import {
-    coworkingSpaceExists,
+  coworkingSpaceExists,
   createCoworkingResource,
   getCoworkingResourceById,
   getCoworkingResourcesBySpaceId,
@@ -14,36 +12,32 @@ import {
 
 export async function listCoworkingResources(
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction,
 ) {
   const coworkingSpaceId = Number(req.params.coworkingSpaceId);
 
-  if (
-    !Number.isInteger(coworkingSpaceId) ||
-    coworkingSpaceId <= 0
-  ) {
+  if (!Number.isInteger(coworkingSpaceId) || coworkingSpaceId <= 0) {
     return res.status(400).json({
       message: "Invalid coworking space id",
     });
   }
 
   try {
-    const resources =
-      await getCoworkingResourcesBySpaceId(coworkingSpaceId);
+    const resources = await getCoworkingResourcesBySpaceId(coworkingSpaceId);
 
     return res.status(200).json({
       resources,
     });
-  } catch {
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  } catch (error) {
+    next(error);
   }
 }
 
 export async function getCoworkingResource(
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction,
 ) {
   const id = Number(req.params.id);
 
@@ -65,33 +59,27 @@ export async function getCoworkingResource(
     return res.status(200).json({
       resource,
     });
-  } catch {
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  } catch (error) {
+    next(error);
   }
 }
 
- 
-
 export async function createCoworkingResourceController(
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction,
 ) {
-  const validation =
-    createCoworkingResourceSchema.safeParse(req.body);
+  const validation = createCoworkingResourceSchema.safeParse(req.body);
 
   if (!validation.success) {
     return res.status(400).json({
       message: "Invalid request data",
-     errors: z.flattenError(validation.error),
+      errors: z.flattenError(validation.error),
     });
   }
 
   try {
-    const exists = await coworkingSpaceExists(
-      validation.data.coworkingSpaceId
-    );
+    const exists = await coworkingSpaceExists(validation.data.coworkingSpaceId);
 
     if (!exists) {
       return res.status(404).json({
@@ -99,16 +87,12 @@ export async function createCoworkingResourceController(
       });
     }
 
-    const resource = await createCoworkingResource(
-      validation.data
-    );
+    const resource = await createCoworkingResource(validation.data);
 
     return res.status(201).json({
       resource,
     });
-  } catch {
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  } catch (error) {
+    next(error);
   }
 }

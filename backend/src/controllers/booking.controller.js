@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createBookingSchema } from "@coworking/shared";
 import { coworkingResourceExists, createBooking, getUserBookings, hasOverlappingBooking, isBookingInsideAvailability, } from "../services/booking.service.js";
-export async function listMyBookings(req, res) {
+export async function listMyBookings(req, res, next) {
     if (!req.user) {
         return res.status(401).json({
             message: "Authentication required",
@@ -13,13 +13,11 @@ export async function listMyBookings(req, res) {
             bookings,
         });
     }
-    catch {
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+    catch (error) {
+        next(error);
     }
 }
-export async function createBookingController(req, res) {
+export async function createBookingController(req, res, next) {
     if (!req.user) {
         return res.status(401).json({
             message: "Authentication required",
@@ -57,10 +55,8 @@ export async function createBookingController(req, res) {
             booking,
         });
     }
-    catch {
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+    catch (error) {
+        next(error);
     }
 }
 //# sourceMappingURL=booking.controller.js.map

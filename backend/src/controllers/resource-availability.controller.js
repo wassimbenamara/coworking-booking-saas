@@ -1,8 +1,7 @@
 import { z } from "zod";
-import { prisma } from "../lib/prisma.js";
 import { createResourceAvailabilitySchema } from "@coworking/shared";
 import { coworkingResourceExists, createResourceAvailability, getResourceAvailabilities, hasOverlappingAvailability, } from "../services/resource-availability.service.js";
-export async function listResourceAvailabilities(req, res) {
+export async function listResourceAvailabilities(req, res, next) {
     const resourceId = Number(req.params.resourceId);
     if (!Number.isInteger(resourceId) || resourceId <= 0) {
         return res.status(400).json({
@@ -21,13 +20,11 @@ export async function listResourceAvailabilities(req, res) {
             availabilities,
         });
     }
-    catch {
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+    catch (error) {
+        next(error);
     }
 }
-export async function createResourceAvailabilityController(req, res) {
+export async function createResourceAvailabilityController(req, res, next) {
     const validation = createResourceAvailabilitySchema.safeParse(req.body);
     if (!validation.success) {
         return res.status(400).json({
@@ -54,10 +51,8 @@ export async function createResourceAvailabilityController(req, res) {
             availability,
         });
     }
-    catch {
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+    catch (error) {
+        next(error);
     }
 }
 //# sourceMappingURL=resource-availability.controller.js.map

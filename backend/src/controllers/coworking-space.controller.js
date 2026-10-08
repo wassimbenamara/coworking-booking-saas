@@ -1,19 +1,17 @@
 import { createCoworkingSpaceSchema } from "@coworking/shared";
 import { createCoworkingSpace, getCoworkingSpaceById, getCoworkingSpaces, } from "../services/coworking-space.service.js";
-export async function listCoworkingSpaces(_req, res) {
+export async function listCoworkingSpaces(_req, res, next) {
     try {
         const coworkingSpaces = await getCoworkingSpaces();
         return res.status(200).json({
             coworkingSpaces,
         });
     }
-    catch {
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+    catch (error) {
+        next(error);
     }
 }
-export async function getCoworkingSpace(req, res) {
+export async function getCoworkingSpace(req, res, next) {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) {
         return res.status(400).json({
@@ -31,13 +29,11 @@ export async function getCoworkingSpace(req, res) {
             coworkingSpace,
         });
     }
-    catch {
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+    catch (error) {
+        next(error);
     }
 }
-export async function createCoworkingSpaceController(req, res) {
+export async function createCoworkingSpaceController(req, res, next) {
     const validation = createCoworkingSpaceSchema.safeParse(req.body);
     if (!validation.success) {
         return res.status(400).json({
@@ -51,10 +47,8 @@ export async function createCoworkingSpaceController(req, res) {
             coworkingSpace,
         });
     }
-    catch {
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+    catch (error) {
+        next(error);
     }
 }
 //# sourceMappingURL=coworking-space.controller.js.map
