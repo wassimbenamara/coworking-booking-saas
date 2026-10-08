@@ -1,7 +1,6 @@
 import { z } from "zod";
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
-import { prisma } from "../lib/prisma.js";
 import { createResourceAvailabilitySchema } from "@coworking/shared";
 
 import {
@@ -11,7 +10,11 @@ import {
   hasOverlappingAvailability,
 } from "../services/resource-availability.service.js";
 
-export async function listResourceAvailabilities(req: Request, res: Response) {
+export async function listResourceAvailabilities(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const resourceId = Number(req.params.resourceId);
 
   if (!Number.isInteger(resourceId) || resourceId <= 0) {
@@ -34,16 +37,15 @@ export async function listResourceAvailabilities(req: Request, res: Response) {
     return res.status(200).json({
       availabilities,
     });
-  } catch {
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  } catch (error: unknown) {
+    next(error);
   }
 }
 
 export async function createResourceAvailabilityController(
   req: Request,
   res: Response,
+  next: NextFunction,
 ) {
   const validation = createResourceAvailabilitySchema.safeParse(req.body);
 
@@ -82,9 +84,7 @@ export async function createResourceAvailabilityController(
     return res.status(201).json({
       availability,
     });
-  } catch {
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  } catch (error: unknown) {
+    next(error);
   }
 }

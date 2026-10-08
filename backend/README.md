@@ -127,6 +127,68 @@ Or:
 npm run build
 ```
 
+## Continuous Integration
+
+Backend integration tests run automatically in GitHub Actions.
+
+The CI workflow:
+
+- starts a dedicated PostgreSQL test database
+- installs dependencies with `npm ci`
+- builds the shared package
+- generates the Prisma client
+- applies Prisma migrations
+- builds the backend
+- runs the backend integration test suite
+
+CI environment variables are provided directly by GitHub Actions and do not rely on the local `.env.test` file.
+
+
+## Security
+
+The backend includes several HTTP security protections:
+
+- Helmet security headers
+- configurable CORS origin allowlist
+- authentication rate limiting
+- JWT-protected application routes
+- Zod request validation
+
+Authentication endpoints are rate-limited to reduce brute-force and credential-stuffing attempts.
+
+Allowed frontend origins are configured with:
+
+```env
+CORS_ORIGINS=http://localhost:5173
+```
+
+
+---
+
+## Error Handling
+
+The backend uses centralized Express error handling.
+
+Unknown API routes return:
+
+```text
+404 Not Found
+```
+
+Example:
+{
+  "message": "Route not found",
+  "path": "/api/unknown-route"
+}
+
+Unexpected server errors are handled by a global error middleware and return:
+500 Internal Server Error
+
+Example:
+{
+  "message": "Internal server error"
+}
+
 ---
 
 # Prisma
@@ -862,6 +924,9 @@ Common API responses include:
 - Booking availability validation
 - Booking overlap prevention
 - Authenticated user booking history
+- centralized API error handling
+- 404 fallback handler
+- global 500 error handler
 
 ---
 
@@ -878,6 +943,7 @@ Common API responses include:
 - Centralized error middleware
 - Structured logging
 - Deployment configuration
+- Centralized error middleware
 
 ---
 
@@ -898,6 +964,67 @@ Authenticated identity comes from the verified JWT.
 The API does not trust client-provided user IDs for booking ownership.
 
 Authentication and authorization remain separate concerns.
+
+---
+
+# Testing
+
+Backend tests use:
+
+- Vitest
+- Supertest
+- a dedicated PostgreSQL test database
+
+
+Run the test suite:
+
+```bash
+npm test --workspace=backend
+```
+
+Current test coverage includes:
+
+- API root and health check
+- authentication and registration
+- duplicate registration prevention
+- successful and invalid login
+- authenticated current-user retrieval
+- protected route rejection without JWT
+- invalid JWT rejection
+- coworking space creation and listing
+- coworking resource creation and listing
+- resource availability creation
+- overlapping availability rejection
+- booking creation inside availability
+- booking rejection outside availability
+- overlapping booking rejection
+- user-specific booking isolation
+- invalid booking payload rejection
+- invalid availability payload rejection
+- unknown API route handling
+
+## Test Database
+
+Backend integration tests use a dedicated PostgreSQL database to avoid modifying development data.
+
+Test environment variables are stored in:
+
+```text
+backend/.env.test
+```
+
+Example:
+```text
+DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_test_db?schema=public"
+JWT_SECRET=test_secret_key
+JWT_EXPIRES_IN=1h
+```
+
+Tests are executed with .env.test loaded:
+```bash
+npm test --workspace=backend
+```
+
 
 ---
 
