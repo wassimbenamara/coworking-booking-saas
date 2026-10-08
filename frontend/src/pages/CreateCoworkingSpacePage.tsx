@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import z from "zod";
 
 type FormErrors = Partial<Record<keyof CreateCoworkingSpaceInput, string>>;
 
@@ -64,7 +65,7 @@ export default function CreateCoworkingSpacePage() {
     const validation = createCoworkingSpaceSchema.safeParse(formData);
 
     if (!validation.success) {
-      const fieldErrors = validation.error.flatten().fieldErrors;
+      const fieldErrors = z.flattenError(validation.error).fieldErrors;
 
       setErrors({
         name: fieldErrors.name?.[0],

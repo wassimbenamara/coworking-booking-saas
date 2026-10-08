@@ -11,11 +11,7 @@ import {
   isBookingInsideAvailability,
 } from "../services/booking.service.js";
 
-export async function listMyBookings(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function listMyBookings(req: Request, res: Response,next:NextFunction) {
   if (!req.user) {
     return res.status(401).json({
       message: "Authentication required",
@@ -28,16 +24,12 @@ export async function listMyBookings(
     return res.status(200).json({
       bookings,
     });
-  } catch (error) {
+  }catch (error) {
     next(error);
   }
 }
 
-export async function createBookingController(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function createBookingController(req: Request, res: Response,next:NextFunction) {
   if (!req.user) {
     return res.status(401).json({
       message: "Authentication required",
