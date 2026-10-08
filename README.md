@@ -45,6 +45,22 @@ The project is built as an npm workspaces monorepo with a React frontend, Node.j
 
 ---
 
+## Quality & CI
+
+The project includes:
+
+- GitHub Actions CI
+- automated monorepo builds
+- PostgreSQL service for backend integration tests
+- Prisma migration validation in CI
+- automated backend integration tests with Vitest and Supertest
+- HTTP security headers with Helmet
+- configurable CORS policy
+- authentication rate limiting
+
+
+---
+
 ## Project Structure
 
 ```text
@@ -167,6 +183,7 @@ Example:
 DATABASE_URL="postgresql://coworking_user:change_me@localhost:5432/coworking_db?schema=public"
 JWT_SECRET=change_me_with_a_long_random_secret
 JWT_EXPIRES_IN=1h
+CORS_ORIGINS=http://localhost:5173
 ```
 
 ### Frontend
@@ -936,6 +953,10 @@ Protected React routes use `ProtectedRoute`.
 - Dashboard navigation
 - GitHub Actions CI
 - Monorepo build pipeline
+- Backend tests with Vitest and Supertest
+- centralized API error handling
+- 404 API fallback handler
+- global 500 error handler
 
 ---
 
@@ -948,11 +969,8 @@ Protected React routes use `ProtectedRoute`.
 - Admin dashboard
 - Improved authentication using HTTP-only cookies
 - API documentation with Swagger / OpenAPI
-- Backend tests with Vitest and Supertest
 - Frontend tests
-- CI test pipeline
 - Stronger concurrent booking protection
-- Improved error handling
 - Deployment
 
 ---
@@ -1050,6 +1068,7 @@ chore: update CI configuration
 - feature branches
 - pull requests before integration
 - stable `main`
+- centralized API error handling
 
 ---
 
@@ -1082,7 +1101,6 @@ My bookings
 Next milestone:
 
 ```text
-Testing
 Authorization
 Security hardening
 Production readiness

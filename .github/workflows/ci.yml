@@ -13,8 +13,29 @@ on:
 
 jobs:
   build:
-    name: Build monorepo
+    name: Build and test monorepo
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: coworking_user
+          POSTGRES_PASSWORD: coworking_password
+          POSTGRES_DB: coworking_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U coworking_user -d coworking_test_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql://coworking_user:coworking_password@localhost:5432/coworking_test_db?schema=public
+      JWT_SECRET: test_secret_key
+      JWT_EXPIRES_IN: 1h
+      NODE_ENV: test
 
     steps:
       - name: Checkout repository
@@ -38,8 +59,12 @@ jobs:
 
       - name: Generate Prisma Client
         run: npm run prisma:generate --workspace=backend
-        env:
-          DATABASE_URL: postgresql://user:password@localhost:5432/database
+
+      - name: Apply Prisma migrations
+        run: npm exec --workspace=backend -- prisma migrate deploy
 
       - name: Build backend
         run: npm run build:backend
+
+      - name: Run backend tests
+        run: npm exec --workspace=backend -- vitest run

@@ -2,12 +2,13 @@ import { registerSchema } from "@coworking/shared";
 import { registerUser } from "../services/auth.service.js";
 import { loginSchema } from "@coworking/shared";
 import { loginUser } from "../services/auth.service.js";
-export async function register(req, res) {
+import z from "zod";
+export async function register(req, res, next) {
     const validation = registerSchema.safeParse(req.body);
     if (!validation.success) {
         return res.status(400).json({
             message: "Invalid request data",
-            errors: validation.error.flatten(),
+            errors: z.flattenError(validation.error),
         });
     }
     try {
@@ -20,17 +21,15 @@ export async function register(req, res) {
                 message: "Email already exists",
             });
         }
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+        next(error);
     }
 }
-export async function login(req, res) {
+export async function login(req, res, next) {
     const validation = loginSchema.safeParse(req.body);
     if (!validation.success) {
         return res.status(400).json({
             message: "Invalid request data",
-            errors: validation.error.flatten(),
+            errors: z.flattenError(validation.error),
         });
     }
     try {
@@ -43,9 +42,7 @@ export async function login(req, res) {
                 message: "Invalid email or password",
             });
         }
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+        next(error);
     }
 }
 export async function me(req, res) {

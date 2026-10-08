@@ -4,15 +4,12 @@ import {
   createBookingController,
   listMyBookings,
 } from "../controllers/booking.controller.js";
+ 
 
-import { authenticate } from "../middlewares/auth.middleware.js";
-
-const router = Router();
-
-router.use(authenticate);
+const router = Router(); 
 
 router.get(
-  "/bookings/me",
+  "/bookings/me", 
   listMyBookings
 );
 

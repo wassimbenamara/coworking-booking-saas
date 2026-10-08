@@ -4,12 +4,10 @@ import {
   createResourceAvailabilityController,
   listResourceAvailabilities,
 } from "../controllers/resource-availability.controller.js";
-
-import { authenticate } from "../middlewares/auth.middleware.js";
+ 
 
 const router = Router();
-
-router.use(authenticate);
+ 
 
 router.get(
   "/coworking-resources/:resourceId/availabilities",
